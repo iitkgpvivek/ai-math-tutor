@@ -1,9 +1,15 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from flask_cors import CORS, cross_origin
 import os
 import json
+import traceback
 from datetime import datetime
 from pathlib import Path
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, 
             static_folder='static',
@@ -21,32 +27,60 @@ problem_generator = Grade7ProblemGenerator()
 @app.route('/')
 def home():
     """Render the main web interface."""
-    return render_template('index.html')
+    # List all problem files
+    problem_files = []
+    for file in DATA_DIR.glob('math_problems_*.json'):
+        problem_files.append({
+            'filename': file.name,
+            'path': f'/problems/{file.name}',
+            'date': datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y-%m-%d %H:%M')
+        })
+    
+    # Sort by newest first
+    problem_files.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render_template('index.html', problem_files=problem_files)
 
 @app.route('/api/problem', methods=['GET'])
+@cross_origin()
 def get_problem():
     """API endpoint to get a new math problem."""
-    topic = request.args.get('topic', 'fractions')
-    difficulty = request.args.get('difficulty', 'medium')
-    
     try:
+        topic = request.args.get('topic', 'fractions')
+        difficulty = request.args.get('difficulty', 'medium')
+        
+        logger.info(f"Generating problem - Topic: {topic}, Difficulty: {difficulty}")
+        
         # Map frontend topic names to generator methods
-        if topic == 'fractions':
-            problem, answer = problem_generator.generate_fraction_decimal_problem(difficulty)
-        elif topic == 'rational':
-            problem, answer = problem_generator.generate_rational_number_problem(difficulty)
-        else:
-            # Default to fractions if unknown topic
-            problem, answer = problem_generator.generate_fraction_decimal_problem(difficulty)
+        try:
+            if topic == 'fractions':
+                problem, answer = problem_generator.generate_fraction_decimal_problem(difficulty)
+            elif topic == 'rational':
+                problem, answer = problem_generator.generate_rational_number_problem(difficulty)
+            else:
+                # Default to fractions if unknown topic
+                problem, answer = problem_generator.generate_fraction_decimal_problem(difficulty)
+                topic = 'fractions'  # Ensure we return the correct topic
+                
+            logger.debug(f"Generated problem: {problem} = {answer}")
             
-        return jsonify({
-            'success': True,
-            'problem': problem,
-            'answer': str(answer),
-            'topic': topic,
-            'difficulty': difficulty
-        })
+            return jsonify({
+                'success': True,
+                'problem': problem,
+                'answer': str(answer),
+                'topic': topic,
+                'difficulty': difficulty
+            })
+            
+        except Exception as gen_error:
+            logger.error(f"Error generating problem: {str(gen_error)}\n{traceback.format_exc()}")
+            return jsonify({
+                'success': False,
+                'error': f'Error generating problem: {str(gen_error)}'
+            }), 500
+            
     except Exception as e:
+        logger.error(f"Unexpected error in get_problem: {str(e)}\n{traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -231,10 +265,66 @@ def log_attempt(attempt_data):
     with open(log_file, 'w') as f:
         json.dump(attempts, f, indent=2)
 
+# View a specific problem set
+@app.route('/problems/<filename>')
+def view_problems(filename):
+    """View a specific problem set."""
+    try:
+        filepath = DATA_DIR / filename
+        if not filepath.exists():
+            return "Problem set not found", 404
+            
+        with open(filepath, 'r') as f:
+            problems_data = json.load(f)
+            
+        return render_template('problems.html', 
+                            filename=filename,
+                            generated_at=problems_data['generated_at'],
+                            problems=problems_data['problems'])
+    except Exception as e:
+        logger.error(f"Error loading problem set: {str(e)}")
+        return f"Error loading problem set: {str(e)}", 500
+
+# List all problem sets (API endpoint)
+@app.route('/api/problems')
+def list_problems():
+    """List all available problem sets."""
+    problem_files = []
+    for file in DATA_DIR.glob('math_problems_*.json'):
+        problem_files.append({
+            'filename': file.name,
+            'path': f'/problems/{file.name}',
+            'date': datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
+            'size': file.stat().st_size
+        })
+    
+    # Sort by newest first
+    problem_files.sort(key=lambda x: x['date'], reverse=True)
+    return jsonify(problem_files)
+
+# Generate a new problem set
+@app.route('/api/generate', methods=['POST'])
+def generate_problems():
+    """Generate a new set of problems."""
+    try:
+        count = int(request.json.get('count', 10))
+        filepath = generate_daily_problems(count)
+        return jsonify({
+            'success': True,
+            'filepath': filepath,
+            'filename': os.path.basename(filepath)
+        })
+    except Exception as e:
+        logger.error(f"Error generating problems: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 # Serve static files
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

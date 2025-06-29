@@ -82,8 +82,20 @@ class EmailService:
             generator = Grade7ProblemGenerator()
             problems = []
             for _ in range(5):
-                problems.append(generator.generate_fraction_decimal_problem('medium'))
-                problems.append(generator.generate_rational_number_problem('medium'))
+                # Get problem and answer as a tuple
+                problem_text, answer = generator.generate_fraction_decimal_problem('medium')
+                problems.append({
+                    'problem': problem_text,
+                    'answer': answer,
+                    'type': 'fraction_decimal'
+                })
+                
+                problem_text, answer = generator.generate_rational_number_problem('medium')
+                problems.append({
+                    'problem': problem_text,
+                    'answer': answer,
+                    'type': 'rational_number'
+                })
             
             # Save problems to track answers
             problem_set = {
@@ -159,7 +171,7 @@ class EmailService:
         
         # Add each problem
         for i, problem in enumerate(problems, 1):
-            content.append(Paragraph(f"<b>Problem {i}:</b> {problem['question']}", styles['Problem']))
+            content.append(Paragraph(f"<b>Problem {i}:</b> {problem['problem']}", styles['Problem']))
             content.append(Spacer(1, 10))
         
         # Add instructions
@@ -180,9 +192,9 @@ class EmailService:
             problems_html += f"""
             <div style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
                 <h3 style="margin-top: 0;">Problem {i}:</h3>
-                <p style="font-size: 16px; margin-bottom: 10px;">{problem['question']}</p>
+                <p style="font-size: 16px; margin-bottom: 10px;">{problem['problem']}</p>
                 <p style="font-size: 14px; color: #6c757d; margin: 0;">
-                    <em>Hint: {problem.get('hint', 'No hint available')}</em>
+                    <em>Type: {problem['type'].replace('_', ' ').title()}</em>
                 </p>
             </div>
             """

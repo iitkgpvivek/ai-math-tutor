@@ -78,23 +78,190 @@
             margin-bottom: 0.5rem;
         }
         
-        .answer-text {
-            font-size: 1.2rem;
-            line-height: 1.8;
+        /* Answer Display Styles */
+        #answer-display {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
+            min-width: 200px;
         }
         
-        /* Style for inline math expressions */
-        .problem-question .MathJax,
-        .problem-answer .MathJax {
-            display: inline !important;
-            margin: 0 2px !important;
+        /* Keypad Styles */
+        .keypad .btn {
+            font-size: 1.25rem;
+            font-weight: 500;
+            transition: all 0.1s ease;
+            border-radius: 8px;
+        }
+        
+        .keypad .btn:active {
+            transform: scale(0.95);
+            background-color: #e9ecef;
+        }
+        
+        /* Fraction Controls */
+        #fraction-controls .btn {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Math Expression Styling */
+        .math-expression {
+            font-size: 1.5rem;
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.5;
+        }
+        
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 0.25em;
             vertical-align: middle;
         }
         
-        /* Ensure proper spacing around math expressions */
-        .problem-question .MathJax:not(:last-child),
-        .problem-answer .MathJax:not(:last-child) {
-            margin-right: 0.5em !important;
+        .fraction .numerator,
+        .fraction .denominator {
+            padding: 0 0.5em;
+        }
+        
+        .fraction .fraction-line {
+            border-top: 2px solid #000;
+            width: 100%;
+            margin: 2px 0;
+        }
+        
+        /* Card Styles */
+        .card {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Button States */
+        .btn:focus {
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .btn-outline-primary.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            #answer-display {
+                font-size: 2rem;
+            }
+            
+            .keypad .btn {
+                padding: 0.75rem 0.5rem;
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Answer input styles */
+        .fraction-input input[type="number"] {
+            font-size: 1.2rem;
+            text-align: center;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .fraction-input input[type="number"]:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            outline: 0;
+        }
+        
+        .fraction-input input[type="number"]::-webkit-inner-spin-button,
+        .fraction-input input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .fraction-bar {
+            border-top: 2px solid #495057;
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .keypad {
+            user-select: none;
+        }
+        
+        .keypad .btn {
+            font-size: 1.2rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        
+        .keypad .btn:active {
+            transform: scale(0.95);
+            background-color: #e9ecef;
+        }
+        
+        .keypad .btn:focus {
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .answer-format-toggle .btn {
+            min-width: 100px;
+        }
+        
+        /* Animation for input feedback */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .input-highlight {
+            animation: pulse 0.3s ease-in-out;
+        }
+        
+        /* Feedback animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .feedback {
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .feedback.incorrect {
+            border-left: 4px solid #dc3545;
+            background-color: #fff5f5;
+        }
+        
+        .feedback.correct {
+            border-left: 4px solid #28a745;
+            background-color: #f5fff9;
+        }
+        
+        .shake {
+            animation: shake 0.4s ease-in-out;
         }
         
         /* MathJax and math rendering styles */
@@ -305,53 +472,166 @@
                                 <button type="button" class="btn btn-outline-primary topic-btn" data-topic="rational">Rational Numbers</button>
                             </div>
                         </div>
-                        
+
                         <!-- Problem Display -->
                         <div class="problem-container">
-                            <div class="math-problem" id="problemText" style="font-size: 1.5em; margin: 20px 0; text-align: center; min-height: 2em;">
-                                Click the button below to get started with your first problem!
-                            </div>
-                            
-                            <!-- Answer Input Area -->
-                            <div id="answer-input-area" style="margin: 20px 0; text-align: center;">
-                                <!-- Will be filled by JavaScript -->
-                            </div>
-                            
-                            <!-- Action Buttons -->
-                            <div class="d-flex justify-content-between mt-3">
-                                <button class="btn btn-outline-secondary" id="hintBtn">
-                                    <i class="bi bi-lightbulb"></i> Hint
-                                </button>
-                                <button class="btn btn-primary" id="checkBtn">
-                                    Check Answer <i class="bi bi-arrow-right"></i>
-                                </button>
-                            </div>
-                            
-                            <!-- Hint and Feedback -->
-                            <div class="hint mt-3" id="hintText" style="display: none;">
-                                <!-- Hint will be displayed here -->
-                            </div>
-                            
-                            <div class="feedback mt-3" id="feedback">
-                                <!-- Feedback will be displayed here -->
+                            <div class="problem-question" id="problemText">
+                                Problem will appear here...
                             </div>
                         </div>
-                        
-                        <div class="d-flex justify-content-between mt-3">
-                            <button class="btn btn-outline-secondary" id="prevBtn" disabled>
-                                <i class="bi bi-chevron-left"></i> Previous
-                            </button>
-                            <button class="btn btn-primary" id="nextBtn">
-                                Next Problem <i class="bi bi-chevron-right"></i>
-                            </button>
+
+                        <!-- Answer Section -->
+                        <div class="row mt-4">
+                            <!-- Answer Display (Left Side) -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Your Answer</h5>
+                                    </div>
+                                    <div class="card-body d-flex flex-column">
+                                        <!-- Answer Preview -->
+                                        <div id="answer-preview" class="text-center mb-4" style="font-size: 2.5rem; min-height: 80px; border: 2px dashed #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <span id="answer-display">0</span>
+                                        </div>
+
+                                        <!-- Hidden Inputs for Answer -->
+                                        <div class="d-none">
+                                            <input type="number" id="whole-number" value="0">
+                                            <input type="number" id="numerator" value="0">
+                                            <input type="number" id="denominator" value="1">
+                                            <input type="text" id="decimal-answer" value="0">
+                                        </div>
+
+                                        <div class="mt-auto">
+                                            <button id="submit-answer" class="btn btn-primary btn-lg w-100">
+                                                <i class="bi bi-send"></i> Submit Answer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Keypad (Right Side) -->
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">Keypad</h5>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary active" id="fractionToggle">
+                                                    <i class="bi bi-arrow-left-right"></i> Fraction
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary" id="decimalToggle">
+                                                    Decimal <i class="bi bi-123"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Number Pad -->
+                                        <div class="keypad">
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="7">7</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="8">8</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="9">9</button></div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="4">4</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="5">5</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="6">6</button></div>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="1">1</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="2">2</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="3">3</button></div>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="0">0</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key=".">.</button></div>
+                                                <div class="col-4"><button class="btn btn-light w-100 py-3" data-key="backspace"><i class="bi bi-backspace fs-4"></i></button></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Fraction Controls -->
+                                        <div id="fraction-controls" class="mt-3 pt-3 border-top">
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <button id="fraction-btn" class="btn btn-outline-primary w-100">
+                                                        <i class="bi bi-slash-circle"></i> Simple Fraction
+                                                    </button>
+                                                </div>
+                                                <div class="col-6">
+                                                    <button id="mixed-fraction-btn" class="btn btn-outline-primary w-100">
+                                                        <i class="bi bi-1-circle"></i> Mixed Fraction
+                                                    </button>
+                                                </div>
+                                                <div class="col-6">
+                                                    <button id="negative-btn" class="btn btn-outline-secondary w-100">
+                                                        <i class="bi bi-dash-circle"></i> Negative
+                                                    </button>
+                                                </div>
+                                                <div class="col-6">
+                                                    <button id="clear-btn" class="btn btn-outline-danger w-100">
+                                                        <i class="bi bi-x-circle"></i> Clear
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Overview -->
+                        <div class="row mb-4" id="statsOverview">
+                            <div class="col-md-4">
+                                <div class="card stats-card">
+                                    <div class="stat-value" id="totalProblems">0</div>
+                                    <div class="stat-label">Problems Attempted</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card stats-card">
+                                    <div class="stat-value" id="correctPercentage">0%</div>
+                                    <div class="stat-label">Correct Answers</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card stats-card">
+                                    <div class="stat-value" id="streak">0</div>
+                                    <div class="stat-label">Day Streak</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Stats Overview -->
-                <div class="row mb-4" id="statsOverview">
-                    <div class="col-md-4">
-                        <div class="card stats-card">
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-outline-secondary" id="hintBtn">
+                        <i class="bi bi-lightbulb"></i> Hint
+                    </button>
+                    <button class="btn btn-primary" id="checkBtn">
+                        Check Answer <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Hint and Feedback -->
+                <div class="hint mt-3" id="hintText" style="display: none;">
+                    <!-- Hint will be displayed here -->
+                </div>
+
+                <div class="feedback mt-3" id="feedback">
+                    <!-- Feedback will be displayed here -->
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-outline-secondary" id="prevBtn" disabled>
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn">
+                        Next Problem <i class="bi bi-chevron-right"></i>
+                    </button>
                             <div class="stat-value" id="totalProblems">0</div>
                             <div class="stat-label">Problems Attempted</div>
                         </div>
@@ -430,39 +710,87 @@
     <!-- Custom JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize state first
+            // Initialize the problem generator and other variables
             let currentProblem = null;
-            let currentAnswer = '';
             let currentTopic = 'fractions';
-            let currentDifficultyLevel = 'medium';
+            let currentDifficultyLevel = 'medium'; // 'easy', 'medium', or 'hard'
             let problemHistory = [];
             let currentProblemIndex = -1;
+            let stats = {
+                totalProblems: 0,
+                correctAnswers: 0,
+                currentStreak: 0,
+                maxStreak: 0
+            };
             
-            // DOM Elements with null checks
+            // State management for answer input
+            let currentInputMode = 'fraction'; // 'fraction' or 'decimal'
+            let currentFractionType = 'simple'; // 'simple' or 'mixed'
+            let isNegative = false;
+            
+            // UI Elements
             const problemText = document.getElementById('problemText');
-            const checkBtn = document.getElementById('checkBtn');
-            const hintBtn = document.getElementById('hintBtn');
-            const hintText = document.getElementById('hintText');
+            const answerDisplay = document.getElementById('answer-display');
+            const checkBtn = document.getElementById('submit-answer');
+            const hintBtn = document.getElementById('hint-btn') || document.getElementById('hintBtn');
+            const hintText = document.getElementById('hint-text') || document.getElementById('hintText');
             const feedback = document.getElementById('feedback');
-            const answerInput = document.getElementById('answer');
-            const answerInputArea = document.getElementById('answer-input-area');
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('next-btn') || document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prev-btn') || document.getElementById('prevBtn');
+            const topicButtons = document.querySelectorAll('.topic-btn');
             const difficultyDropdown = document.getElementById('difficultyDropdown');
-            const currentDifficulty = document.getElementById('currentDifficulty');
+            const difficultyItems = document.querySelectorAll('.dropdown-item[data-difficulty], [data-difficulty]');
+            const problemNumber = document.getElementById('problemNumber');
+            const problemContainer = document.querySelector('.problem-container');
+            const statsOverview = document.getElementById('statsOverview');
+            
+            // Stats elements
+            const totalProblemsEl = document.getElementById('totalProblems');
+            const correctPercentageEl = document.getElementById('correctPercentage');
+            const streakEl = document.getElementById('streak');
+            
+            // Answer input elements
+            const wholeNumberInput = document.getElementById('whole-number');
+            const numeratorInput = document.getElementById('numerator');
+            const denominatorInput = document.getElementById('denominator');
+            const decimalAnswerInput = document.getElementById('decimal-answer');
+            const submitButton = document.getElementById('submit-answer');
+            const fractionToggle = document.getElementById('fractionToggle');
+            const decimalToggle = document.getElementById('decimalToggle');
+            const fractionBtn = document.getElementById('fraction-btn');
+            const mixedFractionBtn = document.getElementById('mixed-fraction-btn');
+            const negativeBtn = document.getElementById('negative-btn');
+            const clearBtn = document.getElementById('clear-btn');
             
             // Validate required elements
             const requiredElements = {
                 problemText,
+                answerDisplay,
                 checkBtn,
                 hintBtn,
                 hintText,
                 feedback,
-                answerInputArea,
                 nextBtn,
                 prevBtn,
                 difficultyDropdown,
-                currentDifficulty
+                difficultyItems,
+                problemNumber,
+                problemContainer,
+                statsOverview,
+                totalProblemsEl,
+                correctPercentageEl,
+                streakEl,
+                wholeNumberInput,
+                numeratorInput,
+                denominatorInput,
+                decimalAnswerInput,
+                submitButton,
+                fractionToggle,
+                decimalToggle,
+                fractionBtn,
+                mixedFractionBtn,
+                negativeBtn,
+                clearBtn
             };
             
             const missingElements = Object.entries(requiredElements)
@@ -492,8 +820,9 @@
                 nextBtn.addEventListener('click', getNewProblem);
                 prevBtn.addEventListener('click', showPreviousProblem);
                 
-                if (answerInput) {
-                    answerInput.addEventListener('keypress', function(e) {
+                // Add keypress listener to decimal input
+                if (decimalAnswerInput) {
+                    decimalAnswerInput.addEventListener('keypress', function(e) {
                         if (e.key === 'Enter') {
                             checkAnswer();
                         }
@@ -554,14 +883,232 @@
             
             // Initialize the application
             function init() {
-                setupEventListeners();
-                setupTopicButtons();
-                updateNavigationButtons();
-                getNewProblem();
+                try {
+                    // Set up UI elements first
+                    setupEventListeners();
+                    setupTopicButtons();
+                    updateNavigationButtons();
+                    
+                    // Initialize answer input system
+                    setupAnswerInputListeners();
+                    
+                    // Load the first problem
+                    getNewProblem().catch(error => {
+                        console.error('Error loading problem:', error);
+                        if (problemText) {
+                            problemText.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <p>Error loading problem. Please try again.</p>
+                                    <p class="small mb-0">${error.message || error}</p>
+                                </div>
+                            `;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    if (problemText) {
+                        problemText.innerHTML = `
+                            <div class="alert alert-danger">
+                                <p>Initialization error. Please refresh the page.</p>
+                                <p class="small mb-0">${error.message || error}</p>
+                            </div>
+                        `;
+                    }
+                }
             }
             
             // Start the application
             init();
+            
+            // Set up event listeners for the keypad and controls
+            function setupAnswerInputListeners() {
+                // Toggle between fraction and decimal input
+                fractionToggle.addEventListener('click', () => {
+                    currentInputMode = 'fraction';
+                    fractionToggle.classList.add('active');
+                    decimalToggle.classList.remove('active');
+                    updateAnswerDisplay();
+                });
+                
+                decimalToggle.addEventListener('click', () => {
+                    currentInputMode = 'decimal';
+                    decimalToggle.classList.add('active');
+                    fractionToggle.classList.remove('active');
+                    updateAnswerDisplay();
+                });
+                
+                // Toggle fraction type
+                fractionBtn.addEventListener('click', () => {
+                    currentFractionType = 'simple';
+                    fractionBtn.classList.add('active');
+                    mixedFractionBtn.classList.remove('active');
+                    updateAnswerDisplay();
+                });
+                
+                mixedFractionBtn.addEventListener('click', () => {
+                    currentFractionType = 'mixed';
+                    mixedFractionBtn.classList.add('active');
+                    fractionBtn.classList.remove('active');
+                    updateAnswerDisplay();
+                });
+                
+                // Toggle negative
+                negativeBtn.addEventListener('click', () => {
+                    isNegative = !isNegative;
+                    negativeBtn.classList.toggle('active', isNegative);
+                    updateAnswerDisplay();
+                });
+                
+                // Clear button
+                clearBtn.addEventListener('click', clearInputs);
+                
+                // Keypad buttons
+                document.querySelectorAll('.keypad [data-key]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const key = button.getAttribute('data-key');
+                        handleKeyPress(key);
+                    });
+                });
+                
+                // Keyboard support
+                document.addEventListener('keydown', (e) => {
+                    // Only handle if we're not in an input field
+                    if (e.target.tagName === 'INPUT') return;
+                    
+                    const key = e.key;
+                    
+                    // Map keyboard keys to our keypad
+                    const keyMap = {
+                        '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+                        '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+                        '.': '.', ',': '.',
+                        'Backspace': 'backspace',
+                        'Delete': 'clear',
+                        'Enter': 'enter',
+                        '=': 'enter',
+                        '+': 'add',
+                        '-': 'subtract',
+                        '*': 'multiply',
+                        '/': 'divide'
+                    };
+                    
+                    if (key in keyMap) {
+                        e.preventDefault();
+                        handleKeyPress(keyMap[key]);
+                    }
+                });
+                
+                // Submit button
+                submitButton.addEventListener('click', () => {
+                    const answer = getFormattedAnswer();
+                    if (answer !== null) {
+                        checkAnswer(answer);
+                    }
+                });
+            }
+            
+            function handleKeyPress(key) {
+                if (currentInputMode === 'decimal') {
+                    handleDecimalInput(key);
+                } else {
+                    handleFractionInput(key);
+                }
+                updateAnswerDisplay();
+            }
+            
+            function handleDecimalInput(key) {
+                let currentValue = decimalAnswerInput.value || '0';
+                
+                if (key === 'backspace') {
+                    decimalAnswerInput.value = currentValue.slice(0, -1) || '0';
+                } else if (key === 'clear') {
+                    clearInputs();
+                } else if (key === '.') {
+                    if (!currentValue.includes('.')) {
+                        decimalAnswerInput.value = currentValue + '.';
+                    }
+                } else if (/\d/.test(key)) {
+                    decimalAnswerInput.value = currentValue === '0' ? key : currentValue + key;
+                }
+            }
+            
+            function handleFractionInput(key) {
+                const activeElement = document.activeElement;
+                let currentInput = activeElement.id;
+                
+                if (key === 'backspace') {
+                    if (activeElement.value.length > 0) {
+                        activeElement.value = activeElement.value.slice(0, -1);
+                    } else {
+                        // Move to previous input if current is empty
+                        const inputs = ['whole-number', 'numerator', 'denominator'];
+                        const currentIndex = inputs.indexOf(currentInput);
+                        if (currentIndex > 0) {
+                            document.getElementById(inputs[currentIndex - 1]).focus();
+                        }
+                    }
+                } else if (key === 'clear') {
+                    clearInputs();
+                } else if (/\d/.test(key)) {
+                    if (activeElement.value === '0') {
+                        activeElement.value = key;
+                    } else {
+                        activeElement.value += key;
+                    }
+                    
+                    // Auto-advance to next input
+                    const inputs = ['numerator', 'denominator'];
+                    const currentIndex = inputs.indexOf(currentInput);
+                    if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                        document.getElementById(inputs[currentIndex + 1]).focus();
+                    }
+                }
+            }
+            
+            function clearInputs() {
+                wholeNumberInput.value = '0';
+                numeratorInput.value = '0';
+                denominatorInput.value = '1';
+                decimalAnswerInput.value = '0';
+                isNegative = false;
+                negativeBtn.classList.remove('active');
+                numeratorInput.focus();
+            }
+            
+            function updateAnswerDisplay() {
+                if (currentInputMode === 'decimal') {
+                    const value = decimalAnswerInput.value || '0';
+                    answerDisplay.textContent = (isNegative && value !== '0' ? '-' : '') + value;
+                } else {
+                    const whole = wholeNumberInput.value || '0';
+                    const num = numeratorInput.value || '0';
+                    const den = denominatorInput.value || '1';
+                    
+                    if (currentFractionType === 'mixed' && whole !== '0') {
+                        answerDisplay.innerHTML = `
+                            <span class="math-expression">
+                                ${isNegative ? '-' : ''}${whole}
+                                <span class="fraction">
+                                    <span class="numerator">${num}</span>
+                                    <span class="fraction-line"></span>
+                                    <span class="denominator">${den}</span>
+                                </span>
+                            </span>
+                        `;
+                    } else {
+                        answerDisplay.innerHTML = `
+                            <span class="math-expression">
+                                ${isNegative ? '-' : ''}
+                                <span class="fraction">
+                                    <span class="numerator">${num}</span>
+                                    <span class="fraction-line"></span>
+                                    <span class="denominator">${den}</span>
+                                </span>
+                            </span>
+                        `;
+                    }
+                }
+            }
             
             // Helper Functions
             function toggleAnswerFormat(format) {
@@ -581,27 +1128,51 @@
             }
             
             function getFormattedAnswer() {
-                const wholeInput = document.getElementById('whole-number');
-                const numInput = document.getElementById('numerator');
-                const denomInput = document.getElementById('denominator');
-                
-                if (wholeInput && numInput && denomInput) {
-                    const whole = wholeInput.value.trim() || '0';
-                    const num = numInput.value.trim() || '0';
-                    const den = denomInput.value.trim() || '1';
-                    
-                    // Validate inputs
-                    if (isNaN(whole) || isNaN(num) || isNaN(den)) return null;
-                    if (parseInt(den) === 0) return null;
-                    
-                    // Format the answer
-                    if (whole === '0' && num === '0') return '0';
-                    if (whole === '0') return `${num}/${den}`;
-                    if (num === '0') return whole;
-                    return `${whole} ${num}/${den}`;
-                } else {
-                    const answer = document.getElementById('answer')?.value.trim() || '';
-                    return answer === '' ? null : answer;
+                try {
+                    if (currentInputMode === 'decimal') {
+                        // Handle decimal input
+                        if (!decimalAnswerInput || !decimalAnswerInput.value) return null;
+                        
+                        const value = decimalAnswerInput.value.trim();
+                        if (value === '' || isNaN(value)) return null;
+                        
+                        // Add visual feedback
+                        decimalAnswerInput.classList.add('input-highlight');
+                        setTimeout(() => decimalAnswerInput.classList.remove('input-highlight'), 300);
+                        
+                        return (isNegative ? '-' : '') + value;
+                    } else {
+                        // Handle fraction input
+                        const whole = wholeNumberInput ? (wholeNumberInput.value.trim() || '0') : '0';
+                        const num = numeratorInput ? (numeratorInput.value.trim() || '0') : '0';
+                        const den = denominatorInput ? (denominatorInput.value.trim() || '1') : '1';
+                        
+                        // Add visual feedback
+                        [wholeNumberInput, numeratorInput, denominatorInput].forEach(input => {
+                            if (input) {
+                                input.classList.add('input-highlight');
+                                setTimeout(() => input.classList.remove('input-highlight'), 300);
+                            }
+                        });
+                        
+                        // Validate inputs
+                        if (isNaN(whole) || isNaN(num) || isNaN(den)) return null;
+                        if (parseInt(den) === 0) return null;
+                        
+                        // Format the answer based on fraction type
+                        if (currentFractionType === 'mixed') {
+                            if (whole === '0' && num === '0') return '0';
+                            if (num === '0') return (isNegative ? '-' : '') + whole;
+                            if (whole === '0') return (isNegative ? '-' : '') + `${num}/${den}`;
+                            return (isNegative ? '-' : '') + `${whole} ${num}/${den}`;
+                        } else {
+                            if (num === '0') return '0';
+                            return (isNegative ? '-' : '') + `${num}/${den}`;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error formatting answer:', error);
+                    return null;
                 }
             }
             
@@ -620,66 +1191,42 @@
             }
             
             function createFractionInputs() {
-                const container = document.getElementById('answer-input-area');
-                container.innerHTML = '';
-                
-                // Always show fraction inputs for fraction problems
+                // Reset input state
                 const isFractionProblem = currentProblem && (currentProblem.includes('/') || currentProblem.includes('÷') || currentProblem.includes('×'));
+                currentInputMode = isFractionProblem ? 'fraction' : 'decimal';
+                currentFractionType = 'simple';
+                isNegative = false;
                 
+                // Clear inputs
+                clearInputs();
+                
+                // Update UI state
                 if (isFractionProblem) {
-                    // Create mixed number input (whole, numerator, denominator)
-                    const inputGroup = document.createElement('div');
-                    inputGroup.style.display = 'inline-flex';
-                    inputGroup.style.alignItems = 'center';
-                    inputGroup.style.justifyContent = 'center';
-                    inputGroup.style.gap = '10px';
-                    inputGroup.style.margin = '20px 0';
-                    inputGroup.style.verticalAlign = 'middle';
+                    // Set fraction mode
+                    fractionToggle.classList.add('active');
+                    decimalToggle.classList.remove('active');
+                    fractionBtn.classList.add('active');
+                    mixedFractionBtn.classList.remove('active');
                     
-                    const wholeInput = document.createElement('input');
-                    wholeInput.type = 'number';
-                    wholeInput.id = 'whole-number';
-                    wholeInput.placeholder = 'Whole';
-                    wholeInput.style.width = '50px';
-                    
-                    const fractionInput = document.createElement('div');
-                    fractionInput.style.display = 'flex';
-                    fractionInput.style.alignItems = 'center';
-                    
-                    const numInput = document.createElement('input');
-                    numInput.type = 'number';
-                    numInput.id = 'numerator';
-                    numInput.placeholder = 'Numerator';
-                    numInput.style.width = '50px';
-                    
-                    const slash = document.createElement('span');
-                    slash.textContent = '/';
-                    slash.style.margin = '0 5px';
-                    
-                    const denomInput = document.createElement('input');
-                    denomInput.type = 'number';
-                    denomInput.id = 'denominator';
-                    denomInput.placeholder = 'Denominator';
-                    denomInput.style.width = '50px';
-                    
-                    fractionInput.appendChild(numInput);
-                    fractionInput.appendChild(slash);
-                    fractionInput.appendChild(denomInput);
-                    
-                    inputGroup.appendChild(wholeInput);
-                    inputGroup.appendChild(fractionInput);
-                    
-                    container.appendChild(inputGroup);
+                    // Set focus to numerator by default
+                    setTimeout(() => {
+                        numeratorInput.focus();
+                        numeratorInput.select();
+                    }, 100);
                 } else {
-                    const decimalInput = document.createElement('input');
-                    decimalInput.type = 'number';
-                    decimalInput.id = 'answer';
-                    decimalInput.placeholder = 'Answer';
-                    decimalInput.style.width = '100%';
-                    decimalInput.style.margin = '20px 0';
+                    // Set decimal mode
+                    decimalToggle.classList.add('active');
+                    fractionToggle.classList.remove('active');
                     
-                    container.appendChild(decimalInput);
+                    // Set focus to decimal input
+                    setTimeout(() => {
+                        decimalAnswerInput.focus();
+                        decimalAnswerInput.select();
+                    }, 100);
                 }
+                
+                // Update display
+                updateAnswerDisplay();
             }
             
             // Queue for MathJax operations
@@ -734,6 +1281,10 @@
             async function getNewProblem() {
                 try {
                     // Clear previous state
+                    if (!problemText) {
+                        throw new Error('Problem text element not found');
+                    }
+                    
                     problemText.innerHTML = 'Loading problem...';
                     clearFractionInputs();
                     if (hintText) hintText.style.display = 'none';
@@ -748,17 +1299,34 @@
                         </div>
                         <p class="mt-2">Loading your math problem...</p>
                     `;
+                    problemText.innerHTML = '';
                     problemText.appendChild(loadingSpinner);
                     
                     try {
-                        const response = await fetch(`/api/problem?topic=${currentTopic}&difficulty=${currentDifficultyLevel}`);
+                        const response = await fetch(`/api/problem?topic=${currentTopic}&difficulty=${currentDifficultyLevel}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        
                         if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            const errorText = await response.text();
+                            console.error('API Error Response:', errorText);
+                            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
                         }
                         
-                        const data = await response.json();
+                        const data = await response.json().catch(error => {
+                            console.error('JSON parse error:', error);
+                            throw new Error('Invalid response from server');
+                        });
+                        
                         if (!data || data.error) {
-                            throw new Error(data?.error || 'Invalid response from server');
+                            throw new Error(data?.error || 'Invalid problem data received');
+                        }
+                        
+                        if (!data.problem || !data.answer) {
+                            throw new Error('Incomplete problem data received');
                         }
                         
                         currentProblem = data.problem;
@@ -1057,10 +1625,13 @@
             function showFeedback(isCorrect, correctAnswer) {
                 feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
                 
+                // Add animation class
+                feedback.style.animation = 'fadeIn 0.3s ease-in-out';
+                
                 // Format the correct answer for display
                 const formatAnswer = (answer) => {
                     if (typeof answer === 'string') {
-                        // Convert mixed numbers to proper format (e.g., '1 3/4' -> '1\\frac{3}{4}')
+                        // Convert mixed numbers to proper format (e.g., '1 3/4' -> '1\frac{3}{4}')
                         answer = answer.replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1\\frac{$2}{$3}');
                         // Convert simple fractions (e.g., '3/4' -> '\\frac{3}{4}')
                         answer = answer.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
@@ -1077,32 +1648,56 @@
                 if (isCorrect) {
                     feedback.innerHTML = `
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <i class="bi bi-check-circle-fill me-3" style="font-size: 2rem; color: var(--success-color);"></i>
                             <div>
-                                <h5 class="mb-0">Correct!</h5>
-                                <p class="mb-0">Great job! 🎉</p>
+                                <h4 class="mb-1 text-success">Correct! 🎉</h4>
+                                <p class="mb-0 text-muted">Great job! You got it right!</p>
                             </div>
                         </div>
+                        <div class="mt-3 d-flex justify-content-between align-items-center">
+                            <button class="btn btn-outline-success" id="nextProblemBtn">
+                                <i class="bi bi-arrow-right-circle"></i> Next Problem
+                            </button>
+                        </div>
                     `;
+                    
+                    // Add event listener for next problem button
+                    document.getElementById('nextProblemBtn')?.addEventListener('click', getNewProblem);
                 } else {
                     feedback.innerHTML = `
                         <div class="d-flex align-items-start">
-                            <i class="bi bi-x-circle-fill me-2 mt-1" style="font-size: 1.5rem; flex-shrink: 0;"></i>
+                            <i class="bi bi-x-circle-fill me-3 mt-1" style="font-size: 2rem; color: #dc3545; flex-shrink: 0;"></i>
                             <div>
-                                <h5 class="mb-1">Not quite right</h5>
-                                <p class="mb-1">The correct answer is: <span class="math-answer">${formattedAnswer}</span></p>
-                                <button class="btn btn-sm btn-outline-primary mt-2" id="tryAgainBtn">
-                                    <i class="bi bi-arrow-repeat"></i> Try Again
-                                </button>
+                                <h4 class="mb-2 text-danger">Not quite right</h4>
+                                <div class="mb-3">
+                                    <p class="mb-1">Your answer needs adjustment.</p>
+                                    <p class="mb-1"><strong>Correct answer:</strong> <span class="math-answer">${formattedAnswer}</span></p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" id="tryAgainBtn">
+                                        <i class="bi bi-arrow-repeat"></i> Try Again
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="showSolutionBtn">
+                                        <i class="bi bi-lightbulb"></i> Show Solution
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
                     
-                    // Add event listener for try again button
+                    // Add event listeners
                     document.getElementById('tryAgainBtn')?.addEventListener('click', function() {
-                        answerInput.value = '';
-                        answerInput.focus();
+                        // Clear inputs
+                        clearFractionInputs();
+                        // Hide feedback
                         feedback.style.display = 'none';
+                        // Focus on the first input
+                        document.querySelector('#answer-input-container input')?.focus();
+                    });
+                    
+                    document.getElementById('showSolutionBtn')?.addEventListener('click', function() {
+                        // TODO: Implement show solution functionality
+                        alert('Solution explanation will be shown here.');
                     });
                     
                     // Render math in the feedback
@@ -1114,7 +1709,9 @@
                     }, 50);
                 }
                 
+                // Show the feedback with a smooth transition
                 feedback.style.display = 'block';
+                feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
             
             function showHint() {

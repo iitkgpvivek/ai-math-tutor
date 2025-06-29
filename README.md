@@ -1,32 +1,24 @@
-# 📚 AI Math Tutor
+# 📚 Grade 7 Math Worksheet Generator
 
-An intelligent math practice system designed to help students master mathematics through personalized learning paths, adaptive difficulty, and a wide variety of problem types. The application includes both a web interface and automated email delivery of daily problem sets.
+A local math worksheet generator that creates practice problems for 7th grade students, focusing on fractions and decimals. The application generates worksheets in JSON format and can convert them to PDF with separate question and answer sheets.
 
-![Math Practice Demo](https://img.shields.io/badge/Status-Active-brightgreen) 
+![Math Worksheet Demo](https://img.shields.io/badge/Status-Active-brightgreen) 
 ![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue) 
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## ✨ Features
 
-- **Daily Problem Sets**: Automatically sends 10 math problems via email every day
-- **Interactive Web Interface**: Practice problems directly in your browser
-- **Adaptive Learning**: Adjusts difficulty based on performance
-- **Comprehensive Coverage**: Covers Grade 7 math topics including:
-  - Number System
-  - Algebra
-  - Geometry
-  - Data Handling
-- **Progress Tracking**: Monitors performance and identifies weak areas
-- **Multiple Problem Types**:
-  - Arithmetic operations
+- **Local Generation**: All worksheets are generated and stored locally
+- **Focused Content**: Special emphasis on fractions and decimals
+- **Multiple Difficulty Levels**: Problems range from basic to challenging
+- **Answer Keys**: Automatically generated with each worksheet
+- **PDF Export**: Convert worksheets to printable PDF format
+- **Problem Types**:
+  - Fraction operations (+, -, ×, ÷)
+  - Decimal operations
   - Word problems
-  - Geometry problems
-  - Data interpretation
-  - And more!
-- **Email Notifications**:
-  - Daily problem sets
-  - Reminders for unanswered problems
-  - Hints and solutions
+  - Fraction-decimal conversions
+  - Mixed numbers
 
 ## 🚀 Getting Started
 
@@ -34,93 +26,78 @@ An intelligent math practice system designed to help students master mathematics
 
 - Python 3.8 or higher
 - pip (Python package manager)
-- Gmail account (for email functionality)
 
 ### Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/iitkgpvivek/ai-math-tutor.git
-   cd ai-math-tutor
+   git clone https://github.com/yourusername/grade7-math-worksheets.git
+   cd grade7-math-worksheets
    ```
 
-2. **Run the setup script**:
+2. **Create and activate a virtual environment (recommended)**:
    ```bash
-   ./setup.sh
-   ```
-   This will:
-   - Create a virtual environment
-   - Install all dependencies
-   - Create a `.env` file from the example
-   - Create necessary directories
-
-3. **Configure your email settings**:
-   - Open the `.env` file
-   - Update the email configuration with your Gmail credentials
-   - For Gmail, you'll need to create an App Password: 
-     1. Go to your Google Account settings
-     2. Navigate to Security > 2-Step Verification > App passwords
-     3. Generate a new app password and use it in the `.env` file
-
-### Running the Application
-
-1. **Start the application**:
-   ```bash
-   # Activate the virtual environment if not already active
+   python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
-   # Start the application
-   python main.py
    ```
 
-2. **Access the web interface**:
-   Open your browser and go to: http://localhost:5000
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+## 📝 Usage
 
-3. **Daily Emails**:
-   - The application will automatically send daily problem sets at 4:00 PM
-   - Students can reply to the email with their answers
+### Generating Worksheets
 
-## 📝 Project Structure
+1. **Generate a new worksheet**:
+   ```bash
+   python generate_math_problems.py
+   ```
+   This will create a JSON file in the `data` directory with 10 math problems.
+
+2. **View the generated worksheet**:
+   ```bash
+   python view_worksheet.py
+   ```
+   This will display the most recently generated worksheet in the console.
+
+### Converting to PDF
+
+To convert the JSON worksheet to a PDF with separate question and answer sheets:
+
+1. **Install the required dependencies**:
+   ```bash
+   pip install reportlab
+   ```
+
+2. **Run the PDF generator**:
+   ```bash
+   python generate_pdf.py
+   ```
+   This will create two PDF files in the `worksheets` directory:
+   - `worksheet_questions.pdf` - Contains just the problems
+   - `worksheet_answers.pdf` - Contains the problems with answers
+
+## 📁 Project Structure
 
 ```
-ai-math-tutor/
-├── data/                   # Data storage for problems and user progress
-├── web/                    # Web application files
-│   ├── static/             # CSS, JS, and other static files
-│   ├── templates/          # HTML templates
-│   └── app.py              # Flask web application
-├── email_service.py        # Email sending functionality
-├── grade7_problems.py      # Problem generators
-├── learning_tracker.py     # Progress tracking
-├── problem_discovery.py    # Web search for new problems
-├── requirements.txt        # Python dependencies
-├── main.py                 # Main application entry point
-├── setup.sh                # Setup script
-├── .env.example            # Example environment variables
-└── README.md               # This file
+grade7-math-worksheets/
+├── data/                   # Directory for JSON worksheets
+├── worksheets/             # Directory for PDF worksheets
+├── grade7_problems.py      # Core problem generation logic
+├── generate_math_problems.py  # Script to generate new worksheets
+├── view_worksheet.py       # View worksheet in console
+├── generate_pdf.py         # Convert JSON to PDF
+└── requirements.txt        # Python dependencies
 ```
 
-## 🔧 Configuration
+## 🤝 Contributing
 
-Edit the `.env` file to configure:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```ini
-# Email Configuration
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_app_specific_password
+## 📄 License
 
-# Email Recipients
-STUDENT_EMAIL=student@example.com
-PARENT_EMAIL=parent@example.com
-
-# Email Schedule (24-hour format)
-DAILY_EMAIL_TIME=16:00  # Sends at 4:00 PM
-
-# Security
-SECRET_KEY=your_secret_key_here
-SOLUTION_PDF_PASSWORD=parent_secret_code
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 ```
 
 ## 🤝 Contributing

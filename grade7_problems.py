@@ -293,36 +293,43 @@ class Grade7ProblemGenerator:
         return problem_func(difficulty)
     
     def _generate_simple_fraction_op(self, difficulty: str) -> Tuple[str, Union[float, str]]:
-        denom = random.choice([2, 3, 4, 5, 6, 8, 10, 12, 100])
-        a = random.randint(1, denom-1)
-        b = random.randint(1, denom-1)
+        # Choose denominators and numerators
+        denom1 = random.choice([2, 3, 4, 5, 6, 8, 10, 12])
+        denom2 = denom1 if random.choice([True, False]) else random.choice([2, 3, 4, 5, 6, 8, 10, 12])
+        
+        num1 = random.randint(1, denom1-1)
+        num2 = random.randint(1, denom2-1)
+        
+        # Choose operation
         op = random.choice(['+', '-', '×', '÷'])
         
-        # For division, ensure we don't divide by zero and keep numbers simpler
-        if op == '÷':
-            b = random.randint(1, 5)  # Keep denominators small for division
-            denom = random.choice([2, 3, 4, 5, 10])
-            a = random.randint(1, 5) * denom // math.gcd(b, denom)
+        # Format the problem
+        problem = f"{num1}/{denom1} {op} {num2}/{denom2} = "
         
-        # Format problem and calculate answer
-        problem = f"{a}/{denom} {op} {b}/{denom} = ?"
-        
+        # Calculate the result
         if op == '+':
-            num = a + b
-            ans = num / denom if num % denom != 0 else num // denom
+            res_num = num1 * denom2 + num2 * denom1
+            res_den = denom1 * denom2
         elif op == '-':
-            num = a - b
-            ans = num / denom if num % denom != 0 else num // denom
+            res_num = num1 * denom2 - num2 * denom1
+            res_den = denom1 * denom2
         elif op == '×':
-            num = a * b
-            den = denom * denom
-            gcd = math.gcd(num, den)
-            ans = f"{num//gcd}/{den//gcd}" if den//gcd != 1 else num//gcd
+            res_num = num1 * num2
+            res_den = denom1 * denom2
         else:  # ÷
-            num = a * denom
-            den = denom * b
-            gcd = math.gcd(num, den)
-            ans = f"{num//gcd}/{den//gcd}" if den//gcd != 1 else num//gcd
+            res_num = num1 * denom2
+            res_den = denom1 * num2
+        
+        # Simplify the result
+        gcd = math.gcd(res_num, res_den)
+        res_num //= gcd
+        res_den //= gcd
+        
+        # Format the answer
+        if res_den == 1:
+            ans = str(res_num)
+        else:
+            ans = f"{res_num}/{res_den}"
             
         return problem, ans
     
@@ -400,51 +407,62 @@ class Grade7ProblemGenerator:
             return problem, ans
     
     def _generate_fraction_word_problem(self, difficulty: str) -> Tuple[str, Union[float, str]]:
-        problems = [
-            (
-                "A recipe needs {n1}/{d1} cups of flour and {n2}/{d2} cups of sugar. How much total dry ingredients are needed?",
-                "{n1}/{d1} + {n2}/{d2}"
-            ),
-            (
-                "A {whole} {unit} long ribbon is cut into pieces of {n1}/{d1} {unit} each. How many pieces can be made?",
-                "{whole} ÷ {n1}/{d1}"
-            ),
-            (
-                "If {n1}/{d1} of the class are boys and {n2}/{d2} of the boys wear glasses, what fraction of the class are boys who wear glasses?",
-                "{n1}/{d1} × {n2}/{d2}"
-            )
-        ]
+        problem_type = random.choice(['recipe', 'ribbon', 'class', 'tank'])
         
-        template, expr = random.choice(problems)
-        
-        # Generate appropriate numbers based on difficulty
-        if difficulty == 'easy':
-            d1, d2 = random.choice([(2,4), (3,6), (2,3), (3,4), (4,8)])
+        if problem_type == 'recipe':
+            # Recipe problem: adding two fractions
+            d1, d2 = random.choice([(2,4), (3,6), (4,8), (3,4), (5,10)])
             n1 = random.randint(1, d1-1)
             n2 = random.randint(1, d2-1)
-            whole = random.randint(2, 5)
-        else:
-            d1, d2 = random.choice([(3,5), (4,7), (5,8), (7,9), (5,6)])
+            ingredients = ['flour', 'sugar', 'milk', 'butter', 'water']
+            problem = f"A recipe needs {n1}/{d1} cups of {random.choice(ingredients)} and {n2}/{d2} cups of {random.choice(ingredients)}. How much total dry ingredients are needed?"
+            
+            # Calculate total
+            total = n1/d1 + n2/d2
+            ans = round(total, 2) if not total.is_integer() else int(total)
+            
+        elif problem_type == 'ribbon':
+            # Ribbon cutting problem: division
+            length = random.randint(2, 5)
+            d = random.choice([2, 3, 4, 5, 6])
+            n = random.randint(1, d-1)
+            problem = f"A {length} meter long ribbon is cut into pieces of {n}/{d} meters each. How many pieces can be made?"
+            
+            # Calculate pieces
+            pieces = (length * d) / n
+            ans = int(pieces) if pieces.is_integer() else round(pieces, 2)
+            
+        elif problem_type == 'class':
+            # Class fraction problem: multiplication of fractions
+            d1, d2 = random.choice([(3,4), (2,3), (4,5), (5,6)])
             n1 = random.randint(1, d1-1)
             n2 = random.randint(1, d2-1)
-            whole = random.randint(3, 8)
+            
+            problem = f"If {n1}/{d1} of the class are boys and {n2}/{d2} of the boys wear glasses, " \
+                     f"what fraction of the class are boys who wear glasses?"
+            
+            # Calculate fraction
+            total_boys = n1/d1
+            boys_with_glasses = total_boys * (n2/d2)
+            
+            # Convert to fraction
+            from fractions import Fraction
+            ans = str(Fraction(boys_with_glasses).limit_denominator())
+            
+        else:  # tank problem
+            # Tank filling problem: solving for whole
+            d1, d2 = random.choice([(3,4), (2,3), (3,5), (4,5)])
+            n1 = 1  # initial fraction
+            n2 = 1  # added fraction
+            added_liters = random.randint(2, 10)
+            
+            problem = f"A tank is {n1}/{d1} full. After adding {added_liters} liters, it becomes {n2}/{d2} full. What is the capacity of the tank?"
+            
+            # Calculate capacity: (added_liters) / (n2/d2 - n1/d1)
+            capacity = added_liters / ((n2/d2) - (n1/d1))
+            ans = round(capacity, 2)
         
-        # Format the problem
-        problem = template.format(
-            n1=n1, d1=d1, n2=n2, d2=d2, whole=whole, unit=random.choice(['meter', 'foot', 'yard'])
-        )
-        
-        # Calculate the answer
-        try:
-            ans = eval(expr.format(n1=n1, d1=d1, n2=n2, d2=d2, whole=whole))
-            if isinstance(ans, float):
-                ans = round(ans, 3)
-                if ans == int(ans):
-                    ans = int(ans)
-            return problem, ans
-        except:
-            # If evaluation fails, generate a different problem
-            return self._generate_fraction_word_problem(difficulty)
+        return problem, ans
     
     def generate_rational_number_problem(self, difficulty: str) -> Tuple[str, str]:
         problem_types = [
