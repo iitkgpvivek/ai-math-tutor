@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Practice - Interactive Tutor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4a6baf;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+        
+        .problem-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        /* Problem section styles */
+        .problem-question {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .problem-answer {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f0f8ff;
+            border-radius: 0.5rem;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .answer-prompt {
+            font-weight: 600;
+            color: #2c5282;
+            margin-bottom: 0.5rem;
+        }
+        
+        .answer-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+        }
+        
+        /* Style for inline math expressions */
+        .problem-question .MathJax,
+        .problem-answer .MathJax {
+            display: inline !important;
+            margin: 0 2px !important;
+            vertical-align: middle;
+        }
+        
+        /* Ensure proper spacing around math expressions */
+        .problem-question .MathJax:not(:last-child),
+        .problem-answer .MathJax:not(:last-child) {
+            margin-right: 0.5em !important;
+        }
+        
+        /* MathJax and math rendering styles */
+        .MathJax {
+            font-size: 1.1em !important;
+            margin: 0 2px !important;
+            vertical-align: middle !important;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Loading state for math content */
+        .math-loading {
+            position: relative;
+            min-height: 1.5em;
+        }
+        
+        .math-loading::after {
+            content: 'Loading math...';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .math-loading .MathJax {
+            opacity: 0.5;
+        }
+        
+        .math-error {
+            color: #dc3545;
+            font-style: italic;
+        }
+        
+        .math-answer {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .math-problem {
+            line-height: 2.5;
+            font-size: 1.2em;
+            padding: 10px 0;
+        }
+        
+        /* Ensure proper spacing around math elements */
+        .math-problem .MathJax {
+            margin: 0 4px !important;
+        }
+        
+        /* Ensure proper alignment of fraction inputs */
+        .fraction-input {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+        
+        .fraction-input input {
+            width: 60px;
+            text-align: center;
+            margin: 2px 0;
+        }
+        
+        .fraction-line {
+            width: 100%;
+            height: 1px;
+            background-color: #000;
+            margin: 3px 0;
+        }
+        
+        .answer-input {
+            font-size: 1.1rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        
+        .answer-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(74, 107, 175, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5a8f;
+        }
+        
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hint {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .topic-btn {
+            margin: 0.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .problem-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">Math Tutor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Practice</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="statsLink">Progress</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8 mx-auto">
+                <!-- Problem Card -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Problem #<span id="problemNumber">1</span></span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="difficultyDropdown" data-bs-toggle="dropdown">
+                                Difficulty: <span id="currentDifficulty">Medium</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" data-difficulty="easy">Easy</a></li>
+                                <li><a class="dropdown-item active" href="#" data-difficulty="medium">Medium</a></li>
+                                <li><a class="dropdown-item" href="#" data-difficulty="hard">Hard</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Topic Selection -->
+                        <div class="mb-4">
+                            <p class="text-muted mb-2">Select a topic:</p>
+                            <div class="btn-group w-100" role="group" aria-label="Topic selection">
+                                <button type="button" class="btn btn-outline-primary active topic-btn" data-topic="fractions">Fractions & Decimals</button>
+                                <button type="button" class="btn btn-outline-primary topic-btn" data-topic="rational">Rational Numbers</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Problem Display -->
+                        <div class="problem-container">
+                            <div class="math-problem" id="problemText" style="font-size: 1.5em; margin: 20px 0; text-align: center; min-height: 2em;">
+                                Click the button below to get started with your first problem!
+                            </div>
+                            
+                            <!-- Answer Input Area -->
+                            <div id="answer-input-area" style="margin: 20px 0; text-align: center;">
+                                <!-- Will be filled by JavaScript -->
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between mt-3">
+                                <button class="btn btn-outline-secondary" id="hintBtn">
+                                    <i class="bi bi-lightbulb"></i> Hint
+                                </button>
+                                <button class="btn btn-primary" id="checkBtn">
+                                    Check Answer <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Hint and Feedback -->
+                            <div class="hint mt-3" id="hintText" style="display: none;">
+                                <!-- Hint will be displayed here -->
+                            </div>
+                            
+                            <div class="feedback mt-3" id="feedback">
+                                <!-- Feedback will be displayed here -->
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </button>
+                            <button class="btn btn-primary" id="nextBtn">
+                                Next Problem <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Overview -->
+                <div class="row mb-4" id="statsOverview">
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stat-value" id="totalProblems">0</div>
+                            <div class="stat-label">Problems Attempted</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stat-value" id="correctPercentage">0%</div>
+                            <div class="stat-label">Correct Answers</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stat-value" id="streak">0</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- MathJax for proper math rendering -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$']],
+            displayMath: [['$$', '$$']],
+            processEscapes: true,
+            processEnvironments: true,
+            packages: {'[+]': ['noerrors']}
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            ignoreHtmlClass: 'tex2jax_ignore',
+            processHtmlClass: 'tex2jax_process',
+            renderActions: {
+                addMenu: [0, '', '']  // Disable the context menu
+            }
+        },
+        startup: {
+            pageReady: () => {
+                return MathJax.startup.defaultPageReady().then(() => {
+                    console.log('MathJax is ready');
+                    if (window.mathJaxQueue) {
+                        window.mathJaxQueue.forEach(fn => fn());
+                        window.mathJaxQueue = [];
+                    }
+                });
+            }
+        },
+        // Disable some features that might interfere with our rendering
+        chtml: {
+            scale: 1.1,
+            minScale: 1.0,
+            matchFontHeight: true
+        },
+        svg: {
+            scale: 1.1,
+            minScale: 1.0,
+            matchFontHeight: true
+        },
+        // Disable assistive features that might interfere
+        a11y: {
+            speech: false,
+            subtitles: false,
+            viewPortMargin: 50,
+            highlight: 'none'
+        }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize state first
+            let currentProblem = null;
+            let currentAnswer = '';
+            let currentTopic = 'fractions';
+            let currentDifficultyLevel = 'medium';
+            let problemHistory = [];
+            let currentProblemIndex = -1;
+            
+            // DOM Elements with null checks
+            const problemText = document.getElementById('problemText');
+            const checkBtn = document.getElementById('checkBtn');
+            const hintBtn = document.getElementById('hintBtn');
+            const hintText = document.getElementById('hintText');
+            const feedback = document.getElementById('feedback');
+            const answerInput = document.getElementById('answer');
+            const answerInputArea = document.getElementById('answer-input-area');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const difficultyDropdown = document.getElementById('difficultyDropdown');
+            const currentDifficulty = document.getElementById('currentDifficulty');
+            
+            // Validate required elements
+            const requiredElements = {
+                problemText,
+                checkBtn,
+                hintBtn,
+                hintText,
+                feedback,
+                answerInputArea,
+                nextBtn,
+                prevBtn,
+                difficultyDropdown,
+                currentDifficulty
+            };
+            
+            const missingElements = Object.entries(requiredElements)
+                .filter(([_, el]) => !el)
+                .map(([name]) => name);
+                
+            if (missingElements.length > 0) {
+                console.error('Missing required elements:', missingElements);
+                if (problemText) {
+                    problemText.innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>Error: Some required elements are missing. Please refresh the page.</p>
+                            <p class="small mb-0">Missing: ${missingElements.join(', ')}</p>
+                            <button class="btn btn-sm btn-outline-secondary mt-2" onclick="window.location.reload()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh Page
+                            </button>
+                        </div>
+                    `;
+                }
+                return; // Stop execution if required elements are missing
+            }
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                checkBtn.addEventListener('click', checkAnswer);
+                hintBtn.addEventListener('click', showHint);
+                nextBtn.addEventListener('click', getNewProblem);
+                prevBtn.addEventListener('click', showPreviousProblem);
+                
+                if (answerInput) {
+                    answerInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            checkAnswer();
+                        }
+                    });
+                }
+                
+                // Set up difficulty dropdown
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const difficulty = this.getAttribute('data-difficulty');
+                        currentDifficultyLevel = difficulty;
+                        currentDifficulty.textContent = this.textContent;
+                        
+                        // Update active state
+                        document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Get new problem with updated difficulty
+                        getNewProblem();
+                    });
+                });
+            }
+            
+            // Set up topic selection
+            function setupTopicButtons() {
+                const topicButtons = document.querySelectorAll('.topic-btn');
+                if (!topicButtons.length) return;
+                
+                topicButtons.forEach(btn => {
+                    // Remove any existing event listeners to prevent duplicates
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    
+                    newBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const topic = this.getAttribute('data-topic');
+                        currentTopic = topicMap[topic] || topic;
+                        
+                        // Update active state
+                        topicButtons.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Get new problem with selected topic
+                        getNewProblem();
+                    });
+                });
+                
+                // Set default topic as active if not already set
+                const activeTopic = document.querySelector('.topic-btn.active');
+                if (!activeTopic) {
+                    const defaultTopic = document.querySelector('.topic-btn[data-topic="fractions"]');
+                    if (defaultTopic) {
+                        defaultTopic.classList.add('active');
+                    }
+                }
+            }
+            
+            // Initialize the application
+            function init() {
+                setupEventListeners();
+                setupTopicButtons();
+                updateNavigationButtons();
+                getNewProblem();
+            }
+            
+            // Start the application
+            init();
+            
+            // Helper Functions
+            function toggleAnswerFormat(format) {
+                const fractionInput = document.getElementById('fraction-input');
+                const decimalInput = document.getElementById('decimal-input');
+                
+                if (format === 'fraction') {
+                    fractionInput.style.display = 'flex';
+                    decimalInput.style.display = 'none';
+                    // Auto-focus the numerator input
+                    document.getElementById('numerator').focus();
+                } else {
+                    fractionInput.style.display = 'none';
+                    decimalInput.style.display = 'block';
+                    document.getElementById('answer').focus();
+                }
+            }
+            
+            function getFormattedAnswer() {
+                const wholeInput = document.getElementById('whole-number');
+                const numInput = document.getElementById('numerator');
+                const denomInput = document.getElementById('denominator');
+                
+                if (wholeInput && numInput && denomInput) {
+                    const whole = wholeInput.value.trim() || '0';
+                    const num = numInput.value.trim() || '0';
+                    const den = denomInput.value.trim() || '1';
+                    
+                    // Validate inputs
+                    if (isNaN(whole) || isNaN(num) || isNaN(den)) return null;
+                    if (parseInt(den) === 0) return null;
+                    
+                    // Format the answer
+                    if (whole === '0' && num === '0') return '0';
+                    if (whole === '0') return `${num}/${den}`;
+                    if (num === '0') return whole;
+                    return `${whole} ${num}/${den}`;
+                } else {
+                    const answer = document.getElementById('answer')?.value.trim() || '';
+                    return answer === '' ? null : answer;
+                }
+            }
+            
+            function clearFractionInputs() {
+                const wholeInput = document.getElementById('whole-number');
+                const numInput = document.getElementById('numerator');
+                const denomInput = document.getElementById('denominator');
+                
+                if (wholeInput) wholeInput.value = '';
+                if (numInput) numInput.value = '';
+                if (denomInput) denomInput.value = '1';
+                
+                // Also clear the decimal input if it exists
+                const answerInput = document.getElementById('answer');
+                if (answerInput) answerInput.value = '';
+            }
+            
+            function createFractionInputs() {
+                const container = document.getElementById('answer-input-area');
+                container.innerHTML = '';
+                
+                // Always show fraction inputs for fraction problems
+                const isFractionProblem = currentProblem && (currentProblem.includes('/') || currentProblem.includes('÷') || currentProblem.includes('×'));
+                
+                if (isFractionProblem) {
+                    // Create mixed number input (whole, numerator, denominator)
+                    const inputGroup = document.createElement('div');
+                    inputGroup.style.display = 'inline-flex';
+                    inputGroup.style.alignItems = 'center';
+                    inputGroup.style.justifyContent = 'center';
+                    inputGroup.style.gap = '10px';
+                    inputGroup.style.margin = '20px 0';
+                    inputGroup.style.verticalAlign = 'middle';
+                    
+                    const wholeInput = document.createElement('input');
+                    wholeInput.type = 'number';
+                    wholeInput.id = 'whole-number';
+                    wholeInput.placeholder = 'Whole';
+                    wholeInput.style.width = '50px';
+                    
+                    const fractionInput = document.createElement('div');
+                    fractionInput.style.display = 'flex';
+                    fractionInput.style.alignItems = 'center';
+                    
+                    const numInput = document.createElement('input');
+                    numInput.type = 'number';
+                    numInput.id = 'numerator';
+                    numInput.placeholder = 'Numerator';
+                    numInput.style.width = '50px';
+                    
+                    const slash = document.createElement('span');
+                    slash.textContent = '/';
+                    slash.style.margin = '0 5px';
+                    
+                    const denomInput = document.createElement('input');
+                    denomInput.type = 'number';
+                    denomInput.id = 'denominator';
+                    denomInput.placeholder = 'Denominator';
+                    denomInput.style.width = '50px';
+                    
+                    fractionInput.appendChild(numInput);
+                    fractionInput.appendChild(slash);
+                    fractionInput.appendChild(denomInput);
+                    
+                    inputGroup.appendChild(wholeInput);
+                    inputGroup.appendChild(fractionInput);
+                    
+                    container.appendChild(inputGroup);
+                } else {
+                    const decimalInput = document.createElement('input');
+                    decimalInput.type = 'number';
+                    decimalInput.id = 'answer';
+                    decimalInput.placeholder = 'Answer';
+                    decimalInput.style.width = '100%';
+                    decimalInput.style.margin = '20px 0';
+                    
+                    container.appendChild(decimalInput);
+                }
+            }
+            
+            // Queue for MathJax operations
+            window.mathJaxQueue = window.mathJaxQueue || [];
+            
+            function renderMath(elements = []) {
+                return new Promise((resolve) => {
+                    const render = () => {
+                        if (typeof MathJax === 'undefined' || !MathJax.typesetPromise) {
+                            console.log('MathJax not ready yet, will retry');
+                            setTimeout(render, 100);
+                            return;
+                        }
+                        
+                        const targets = elements.length ? elements : [document.body];
+                        
+                        // Add loading class to indicate rendering is in progress
+                        targets.forEach(el => el.classList.add('math-loading'));
+                        
+                        MathJax.typesetPromise(targets).then(() => {
+                            // Remove loading class and add rendered class
+                            targets.forEach(el => {
+                                el.classList.remove('math-loading');
+                                el.classList.add('math-rendered');
+                            });
+                            
+                            // Apply styles to rendered math
+                            const mathElements = document.querySelectorAll('.MathJax, .math-rendered .MathJax');
+                            mathElements.forEach(el => {
+                                el.style.fontSize = '1.2em';
+                                el.style.display = 'inline-block';
+                                el.style.verticalAlign = 'middle';
+                                el.style.margin = '0 2px';
+                                el.style.pointerEvents = 'auto'; // Make sure it's clickable
+                            });
+                            
+                            resolve();
+                        }).catch(err => {
+                            console.error('MathJax typeset error:', err);
+                            // Remove loading class even if there was an error
+                            targets.forEach(el => el.classList.remove('math-loading'));
+                            resolve();
+                        });
+                    };
+                    
+                    // Start the rendering process
+                    render();
+                });
+            }
+            
+            // Main Functions
+            async function getNewProblem() {
+                try {
+                    // Clear previous state
+                    problemText.innerHTML = 'Loading problem...';
+                    clearFractionInputs();
+                    if (hintText) hintText.style.display = 'none';
+                    if (feedback) feedback.innerHTML = '';
+                    
+                    // Show loading state
+                    const loadingSpinner = document.createElement('div');
+                    loadingSpinner.className = 'text-center my-4';
+                    loadingSpinner.innerHTML = `
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading your math problem...</p>
+                    `;
+                    problemText.appendChild(loadingSpinner);
+                    
+                    try {
+                        const response = await fetch(`/api/problem?topic=${currentTopic}&difficulty=${currentDifficultyLevel}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        if (!data || data.error) {
+                            throw new Error(data?.error || 'Invalid response from server');
+                        }
+                        
+                        currentProblem = data.problem;
+                        currentAnswer = data.answer;
+                        
+                        // Add to history
+                        problemHistory.push({
+                            problem: currentProblem,
+                            answer: currentAnswer,
+                            userAnswer: '',
+                            isCorrect: false,
+                            topic: currentTopic,
+                            difficulty: currentDifficultyLevel,
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        currentProblemIndex = problemHistory.length - 1;
+                        updateNavigationButtons();
+                        
+                        // Clear loading state
+                        problemText.innerHTML = '';
+                        
+                        // Update UI with new problem
+                        const problemContainer = document.createElement('div');
+                        problemContainer.className = 'problem-content';
+                        
+                        // Format only the mathematical expressions in the text
+                        const formatMathExpressions = (text) => {
+                            // First, protect text that shouldn't be processed as math
+                            // by replacing spaces with a temporary placeholder
+                            const tempPlaceholder = '___TEMP_SPACE___';
+                            
+                            // Handle mixed numbers (e.g., 1 3/4 -> 1\frac{3}{4})
+                            text = text.replace(/(\d+)\s+(\d+\/\d+)/g, (match, p1, p2) => {
+                                return `$${p1}\\frac{${p2.split('/')[0]}}{${p2.split('/')[1]}}$`;
+                            });
+                            
+                            // Handle simple fractions (e.g., 3/4 -> \frac{3}{4})
+                            text = text.replace(/(\d+)\/(\d+)/g, (match, p1, p2) => {
+                                // Only replace if it's not already inside math delimiters
+                                return text.includes(`$${match}`) ? match : `$\\frac{${p1}}{${p2}}$`;
+                            });
+                            
+                            // Handle multiplication signs
+                            text = text.replace(/(\d+)\s*\*\s*(\d+)/g, '$1 \\times $2');
+                            
+                            // Handle equals sign
+                            text = text.replace(/([^=])=(?!=)/g, '$1 = ');
+                            
+                            // Replace the temporary placeholder back to spaces
+                            text = text.replace(new RegExp(tempPlaceholder, 'g'), ' ');
+                            
+                            return text;
+                        };
+                        
+                        // Split the problem into question and answer parts
+                        const [questionPart, answerPart] = currentProblem.split('?');
+                        const formattedQuestion = questionPart ? formatMathExpressions(questionPart.trim()) : '';
+                        const formattedAnswer = answerPart ? formatMathExpressions(answerPart.trim()) : '';
+                        
+                        // Create separate sections for question and answer
+                        problemContainer.innerHTML = `
+                            <div class="problem-question mb-3">
+                                <div class="question-text">${formattedQuestion}?</div>
+                            </div>
+                            ${answerPart ? `
+                            <div class="problem-answer">
+                                <div class="answer-prompt">Answer:</div>
+                                <div class="answer-text">${formattedAnswer}</div>
+                            </div>
+                            ` : ''}
+                        `;
+                        
+                        problemText.innerHTML = '';
+                        problemText.appendChild(problemContainer);
+                        
+                        // Create appropriate input fields
+                        createFractionInputs();
+                        
+                        // Render math with better error handling and visual feedback
+                        problemContainer.classList.add('math-loading');
+                        
+                        const renderWithRetry = (attempt = 0) => {
+                            renderMath([problemContainer]).then(() => {
+                                problemContainer.classList.remove('math-loading');
+                            }).catch((err) => {
+                                console.error('Math rendering error:', err);
+                                if (attempt < 3) {
+                                    console.log(`Retrying math rendering (attempt ${attempt + 1})`);
+                                    setTimeout(() => renderWithRetry(attempt + 1), 500);
+                                } else {
+                                    problemContainer.classList.remove('math-loading');
+                                    problemContainer.classList.add('math-error');
+                                    console.error('Failed to render math after multiple attempts');
+                                }
+                            });
+                        };
+                        
+                        renderWithRetry();
+                        
+                        // Focus on the first input
+                        const firstInput = document.querySelector('#answer-input-area input');
+                        if (firstInput) {
+                            firstInput.focus();
+                            // Clear any previous values
+                            firstInput.value = '';
+                        }
+                        
+                        // Update problem number
+                        const problemNumberEl = document.getElementById('problemNumber');
+                        if (problemNumberEl) {
+                            problemNumberEl.textContent = problemHistory.length;
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error fetching problem:', error);
+                        throw error; // Re-throw to be caught by outer catch
+                    }
+                } catch (error) {
+                    console.error('Error in getNewProblem:', error);
+                    problemText.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error loading problem:</strong> ${error.message || 'Please try again'}
+                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="getNewProblem()">
+                                <i class="bi bi-arrow-clockwise"></i> Retry
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+            
+            function showPreviousProblem() {
+                if (currentProblemIndex > 0) {
+                    currentProblemIndex--;
+                    const prevProblem = problemHistory[currentProblemIndex];
+                    
+                    currentProblem = prevProblem.problem;
+                    currentAnswer = prevProblem.answer;
+                    currentTopic = prevProblem.topic;
+                    currentDifficultyLevel = prevProblem.difficulty;
+                    
+                    // Update UI with new problem
+                    problemText.innerHTML = currentProblem.replace(/(\d+\/\d+)/g, '$$$1$$');
+                    
+                    // Create appropriate input fields
+                    createFractionInputs();
+                    
+                    // Render math expressions
+                    renderMath();
+                    
+                    // Focus on the first input
+                    const firstInput = document.querySelector('#answer-input-area input');
+                    if (firstInput) firstInput.focus();
+                    
+                    // Show previous feedback if any
+                    if (prevProblem.userAnswer !== '') {
+                        showFeedback(prevProblem.isCorrect, prevProblem.answer);
+                    } else {
+                        feedback.style.display = 'none';
+                    }
+                    
+                    // Update problem number
+                    document.getElementById('problemNumber').textContent = currentProblemIndex + 1;
+                    
+                    updateNavigationButtons();
+                }
+            }
+            
+            function updateNavigationButtons() {
+                prevBtn.disabled = currentProblemIndex <= 0;
+                nextBtn.textContent = 'Next Problem';
+                nextBtn.onclick = getNewProblem;
+            }
+            
+            function normalizeNumberString(numStr) {
+                // Remove any extra spaces and normalize decimal points
+                return numStr.toString().trim().replace(/\s+/g, '');
+            }
+            
+            function compareAnswers(userAns, correctAns) {
+                // First try direct comparison
+                if (normalizeNumberString(userAns) === normalizeNumberString(correctAns)) {
+                    return true;
+                }
+                
+                // Then try numeric comparison
+                const userNum = parseFloat(userAns);
+                const correctNum = parseFloat(correctAns);
+                
+                if (!isNaN(userNum) && !isNaN(correctNum)) {
+                    return Math.abs(userNum - correctNum) < 0.0001;
+                }
+                
+                return false;
+            }
+            
+            async function checkAnswer() {
+                const userAnswer = getFormattedAnswer();
+                
+                if (userAnswer === null || userAnswer === '') {
+                    showFeedback(false, 'Please enter a valid answer');
+                    return;
+                }
+                
+                console.log('Checking answer...');
+                console.log('User answer:', userAnswer);
+                console.log('Expected answer:', currentAnswer);
+                
+                // First try exact match
+                if (userAnswer === currentAnswer) {
+                    // Update problem history
+                    if (problemHistory[currentProblemIndex]) {
+                        problemHistory[currentProblemIndex].userAnswer = userAnswer;
+                        problemHistory[currentProblemIndex].isCorrect = true;
+                    }
+                    
+                    // Show feedback and move to next problem
+                    showFeedback(true, 'Correct! Well done!');
+                    setTimeout(() => getNewProblem(), 1500);
+                    return;
+                }
+                
+                // Then try comparison with tolerance for decimal answers
+                if (compareAnswers(userAnswer, currentAnswer)) {
+                    // Update problem history
+                    if (problemHistory[currentProblemIndex]) {
+                        problemHistory[currentProblemIndex].userAnswer = userAnswer;
+                        problemHistory[currentProblemIndex].isCorrect = true;
+                    }
+                    
+                    // Show feedback and move to next problem
+                    showFeedback(true, 'Correct! Well done!');
+                    setTimeout(() => getNewProblem(), 1500);
+                    return;
+                }
+                
+                // If we get here, the answer was wrong
+                showFeedback(false, `Incorrect. Try again! The correct answer is ${currentAnswer}`);
+                
+                // Update problem history
+                if (problemHistory[currentProblemIndex]) {
+                    problemHistory[currentProblemIndex].userAnswer = userAnswer;
+                    problemHistory[currentProblemIndex].isCorrect = false;
+                }
+                
+                // Log the attempt
+                console.log('Answer check complete:', {
+                    userAnswer,
+                    correctAnswer: currentAnswer,
+                    isCorrect: false,
+                    topic: currentTopic,
+                    difficulty: currentDifficultyLevel
+                });
+                
+                try {
+                    const response = await fetch('/api/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            problem: currentProblem,
+                            userAnswer: userAnswer,
+                            correctAnswer: currentAnswer,
+                            topic: currentTopic,
+                            difficulty: currentDifficultyLevel
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update current problem in history
+                        problemHistory[currentProblemIndex].userAnswer = userAnswer;
+                        problemHistory[currentProblemIndex].isCorrect = data.is_correct;
+                        
+                        // Show feedback
+                        showFeedback(data.is_correct, data.correct_answer || currentAnswer);
+                        
+                        // Update stats
+                        updateStats();
+                        
+                        // If answer was correct, move to next problem after delay
+                        if (data.is_correct) {
+                            setTimeout(() => getNewProblem(), 1500);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to check answer');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showFeedback(false, 'Error checking answer');
+                }
+            }
+            
+            function showFeedback(isCorrect, correctAnswer) {
+                feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+                
+                // Format the correct answer for display
+                const formatAnswer = (answer) => {
+                    if (typeof answer === 'string') {
+                        // Convert mixed numbers to proper format (e.g., '1 3/4' -> '1\\frac{3}{4}')
+                        answer = answer.replace(/(\d+)\s+(\d+)\/(\d+)/g, '$1\\frac{$2}{$3}');
+                        // Convert simple fractions (e.g., '3/4' -> '\\frac{3}{4}')
+                        answer = answer.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+                        // Handle multiplication signs
+                        answer = answer.replace(/\*/g, ' \\times ');
+                        // Wrap in math delimiters
+                        return `$${answer}$`;
+                    }
+                    return `$${answer}$`; // Wrap numbers in math delimiters
+                };
+                
+                const formattedAnswer = formatAnswer(correctAnswer);
+                
+                if (isCorrect) {
+                    feedback.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h5 class="mb-0">Correct!</h5>
+                                <p class="mb-0">Great job! 🎉</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    feedback.innerHTML = `
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-x-circle-fill me-2 mt-1" style="font-size: 1.5rem; flex-shrink: 0;"></i>
+                            <div>
+                                <h5 class="mb-1">Not quite right</h5>
+                                <p class="mb-1">The correct answer is: <span class="math-answer">${formattedAnswer}</span></p>
+                                <button class="btn btn-sm btn-outline-primary mt-2" id="tryAgainBtn">
+                                    <i class="bi bi-arrow-repeat"></i> Try Again
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add event listener for try again button
+                    document.getElementById('tryAgainBtn')?.addEventListener('click', function() {
+                        answerInput.value = '';
+                        answerInput.focus();
+                        feedback.style.display = 'none';
+                    });
+                    
+                    // Render math in the feedback
+                    setTimeout(() => {
+                        const mathElements = feedback.querySelectorAll('.math-answer');
+                        if (mathElements.length > 0 && typeof MathJax !== 'undefined') {
+                            MathJax.typesetPromise([...mathElements]);
+                        }
+                    }, 50);
+                }
+                
+                feedback.style.display = 'block';
+            }
+            
+            function showHint() {
+                // For now, show a generic hint
+                hintText.innerHTML = `
+                    <strong>Hint:</strong> Try breaking the problem into smaller steps. 
+                    Remember to check your calculations carefully.
+                `;
+                hintText.style.display = 'block';
+            }
+            
+            function updateStats() {
+                // This would be updated with real data from the server
+                const totalProblems = problemHistory.length;
+                const correctAnswers = problemHistory.filter(p => p.isCorrect).length;
+                const percentage = totalProblems > 0 ? Math.round((correctAnswers / totalProblems) * 100) : 0;
+                
+                document.getElementById('totalProblems').textContent = totalProblems;
+                document.getElementById('correctPercentage').textContent = `${percentage}%`;
+                
+                // Simple streak calculation (would be more sophisticated in a real app)
+                const today = new Date().toDateString();
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                let streak = 0;
+                if (problemHistory.some(p => new Date(p.timestamp).toDateString() === today)) {
+                    streak = 1;
+                    if (problemHistory.some(p => new Date(p.timestamp).toDateString() === yesterday.toDateString())) {
+                        streak = 2; // Simple example
+                    }
+                }
+                
+                document.getElementById('streak').textContent = streak;
+            }
+            
+            // Initialize stats
+            updateStats();
+        });
+    </script>
+</body>
+</html>

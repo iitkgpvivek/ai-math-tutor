@@ -276,63 +276,403 @@ class Grade7ProblemGenerator:
             b = random.randint(-50, 50)
             return f"Evaluate: |{a} - {b}| + |{b} - {a}|", 2 * abs(a - b)
     
-    def generate_fraction_decimal_problem(self, difficulty: str) -> Tuple[str, float]:
+    def generate_fraction_decimal_problem(self, difficulty: str) -> Tuple[str, Union[float, str]]:
+        problem_types = [
+            self._generate_simple_fraction_op,
+            self._generate_mixed_number_op,
+            self._generate_fraction_decimal_conversion,
+            self._generate_fraction_word_problem
+        ]
+        
+        # For easy difficulty, only use simple operations
         if difficulty == 'easy':
-            # Simple fraction addition/subtraction
-            denom = random.choice([2, 4, 5, 10, 100])
-            a = random.randint(1, denom-1)
-            b = random.randint(1, denom-1)
-            op = random.choice(['+', '-'])
-            if op == '+':
-                return f"{a}/{denom} + {b}/{denom} = ?", round((a + b)/denom, 2)
-            else:
-                return f"{a}/{denom} - {b}/{denom} = ?", round((a - b)/denom, 2)
+            problem_func = random.choice(problem_types[:2])
         else:
-            # Mixed operations with decimals
-            a = round(random.uniform(0.1, 10), 1)
-            b = round(random.uniform(0.1, 10), 1)
-            op = random.choice(['+', '-', '×', '÷'])
-            if op == '+':
-                return f"{a} + {b} = ?", round(a + b, 2)
-            elif op == '-':
-                return f"{a} - {b} = ?", round(a - b, 2)
-            elif op == '×':
-                return f"{a} × {b} = ?", round(a * b, 2)
-            else:  # ÷
-                return f"{a} ÷ {b} = ?", round(a / b, 2)
+            problem_func = random.choice(problem_types)
+            
+        return problem_func(difficulty)
     
-    def generate_rational_number_problem(self, difficulty: str) -> Tuple[str, str]:
-        # Generate two fractions
-        den1 = random.randint(2, 10)
-        num1 = random.randint(1, den1-1)
-        den2 = random.randint(2, 10)
-        num2 = random.randint(1, den2-1)
+    def _generate_simple_fraction_op(self, difficulty: str) -> Tuple[str, Union[float, str]]:
+        denom = random.choice([2, 3, 4, 5, 6, 8, 10, 12, 100])
+        a = random.randint(1, denom-1)
+        b = random.randint(1, denom-1)
+        op = random.choice(['+', '-', '×', '÷'])
+        
+        # For division, ensure we don't divide by zero and keep numbers simpler
+        if op == '÷':
+            b = random.randint(1, 5)  # Keep denominators small for division
+            denom = random.choice([2, 3, 4, 5, 10])
+            a = random.randint(1, 5) * denom // math.gcd(b, denom)
+        
+        # Format problem and calculate answer
+        problem = f"{a}/{denom} {op} {b}/{denom} = ?"
+        
+        if op == '+':
+            num = a + b
+            ans = num / denom if num % denom != 0 else num // denom
+        elif op == '-':
+            num = a - b
+            ans = num / denom if num % denom != 0 else num // denom
+        elif op == '×':
+            num = a * b
+            den = denom * denom
+            gcd = math.gcd(num, den)
+            ans = f"{num//gcd}/{den//gcd}" if den//gcd != 1 else num//gcd
+        else:  # ÷
+            num = a * denom
+            den = denom * b
+            gcd = math.gcd(num, den)
+            ans = f"{num//gcd}/{den//gcd}" if den//gcd != 1 else num//gcd
+            
+        return problem, ans
+    
+    def _generate_mixed_number_op(self, difficulty: str) -> Tuple[str, Union[float, str]]:
+        # Generate mixed numbers: a b/c op d e/f
+        b = random.randint(1, 4)
+        c = random.choice([2, 3, 4, 5, 8])
+        e = random.randint(1, 4)
+        f = random.choice([2, 3, 4, 5, 8])
+        
+        # Ensure proper fractions
+        a = random.randint(0, 3) if difficulty == 'easy' else random.randint(0, 5)
+        d = random.randint(0, 3) if difficulty == 'easy' else random.randint(0, 5)
         
         op = random.choice(['+', '-', '×', '÷'])
         
+        # Convert to improper fractions
+        num1 = a * c + b
+        num2 = d * f + e
+        
+        # Format problem
+        problem = f"{a} {b}/{c} {op} {d} {e}/{f} = ?"
+        
+        # Calculate result
         if op == '+':
-            result_num = num1 * den2 + num2 * den1
-            result_den = den1 * den2
+            res_num = num1 * f + num2 * c
+            res_den = c * f
         elif op == '-':
-            result_num = num1 * den2 - num2 * den1
-            result_den = den1 * den2
+            res_num = num1 * f - num2 * c
+            res_den = c * f
         elif op == '×':
-            result_num = num1 * num2
-            result_den = den1 * den2
+            res_num = num1 * num2
+            res_den = c * f
         else:  # ÷
-            result_num = num1 * den2
-            result_den = den1 * num2
+            res_num = num1 * f
+            res_den = c * num2
+        
+        # Simplify result
+        gcd = math.gcd(res_num, res_den)
+        res_num //= gcd
+        res_den //= gcd
+        
+        # Format answer
+        if res_den == 1:
+            ans = str(res_num)
+        else:
+            whole = res_num // res_den
+            remainder = res_num % res_den
+            if whole > 0 and remainder > 0:
+                ans = f"{whole} {remainder}/{res_den}"
+            else:
+                ans = f"{remainder if remainder != 0 else whole}/{res_den}"
+                
+        return problem, ans
+    
+    def _generate_fraction_decimal_conversion(self, difficulty: str) -> Tuple[str, Union[float, str]]:
+        if random.choice([True, False]):
+            # Fraction to decimal
+            den = random.choice([2, 4, 5, 8, 10, 20, 25, 50, 100])
+            num = random.randint(1, den-1)
+            problem = f"Convert {num}/{den} to a decimal."
+            ans = round(num / den, 3)
+            if ans == int(ans):
+                ans = int(ans)
+            return problem, ans
+        else:
+            # Decimal to fraction
+            decimal = round(random.uniform(0.1, 0.9), 2)
+            # Convert decimal to fraction
+            den = 100 if decimal * 100 == int(decimal * 100) else 1000
+            num = int(decimal * den)
+            gcd = math.gcd(num, den)
+            problem = f"Convert {decimal} to a fraction in simplest form."
+            ans = f"{num//gcd}/{den//gcd}"
+            return problem, ans
+    
+    def _generate_fraction_word_problem(self, difficulty: str) -> Tuple[str, Union[float, str]]:
+        problems = [
+            (
+                "A recipe needs {n1}/{d1} cups of flour and {n2}/{d2} cups of sugar. How much total dry ingredients are needed?",
+                "{n1}/{d1} + {n2}/{d2}"
+            ),
+            (
+                "A {whole} {unit} long ribbon is cut into pieces of {n1}/{d1} {unit} each. How many pieces can be made?",
+                "{whole} ÷ {n1}/{d1}"
+            ),
+            (
+                "If {n1}/{d1} of the class are boys and {n2}/{d2} of the boys wear glasses, what fraction of the class are boys who wear glasses?",
+                "{n1}/{d1} × {n2}/{d2}"
+            )
+        ]
+        
+        template, expr = random.choice(problems)
+        
+        # Generate appropriate numbers based on difficulty
+        if difficulty == 'easy':
+            d1, d2 = random.choice([(2,4), (3,6), (2,3), (3,4), (4,8)])
+            n1 = random.randint(1, d1-1)
+            n2 = random.randint(1, d2-1)
+            whole = random.randint(2, 5)
+        else:
+            d1, d2 = random.choice([(3,5), (4,7), (5,8), (7,9), (5,6)])
+            n1 = random.randint(1, d1-1)
+            n2 = random.randint(1, d2-1)
+            whole = random.randint(3, 8)
+        
+        # Format the problem
+        problem = template.format(
+            n1=n1, d1=d1, n2=n2, d2=d2, whole=whole, unit=random.choice(['meter', 'foot', 'yard'])
+        )
+        
+        # Calculate the answer
+        try:
+            ans = eval(expr.format(n1=n1, d1=d1, n2=n2, d2=d2, whole=whole))
+            if isinstance(ans, float):
+                ans = round(ans, 3)
+                if ans == int(ans):
+                    ans = int(ans)
+            return problem, ans
+        except:
+            # If evaluation fails, generate a different problem
+            return self._generate_fraction_word_problem(difficulty)
+    
+    def generate_rational_number_problem(self, difficulty: str) -> Tuple[str, str]:
+        problem_types = [
+            self._generate_rational_operation,
+            self._generate_rational_comparison,
+            self._generate_rational_word_problem,
+            self._generate_rational_simplification
+        ]
+        return random.choice(problem_types)(difficulty)
+    
+    def _generate_rational_operation(self, difficulty: str) -> Tuple[str, str]:
+        # Generate two fractions, possibly negative
+        den1 = random.randint(2, 12)
+        num1 = random.randint(1, den1-1)
+        if random.random() > 0.5:
+            num1 = -num1
+            
+        den2 = random.randint(2, 12)
+        num2 = random.randint(1, den2-1)
+        if random.random() > 0.5:
+            num2 = -num2
+        
+        op = random.choice(['+', '-', '×', '÷', '+', '-'])  # More likely to get + or -
+        
+        # For harder problems, include mixed operations
+        if difficulty == 'hard' and random.random() > 0.7:
+            op2 = random.choice(['+', '-', '×', '÷'])
+            den3 = random.randint(2, 12)
+            num3 = random.randint(1, den3-1)
+            if random.random() > 0.5:
+                num3 = -num3
+            
+            # Calculate first operation
+            if op == '+':
+                temp_num = num1 * den2 + num2 * den1
+                temp_den = den1 * den2
+            elif op == '-':
+                temp_num = num1 * den2 - num2 * den1
+                temp_den = den1 * den2
+            elif op == '×':
+                temp_num = num1 * num2
+                temp_den = den1 * den2
+            else:  # ÷
+                temp_num = num1 * den2
+                temp_den = den1 * num2
+            
+            # Calculate second operation
+            if op2 == '+':
+                result_num = temp_num * den3 + num3 * temp_den
+                result_den = temp_den * den3
+            elif op2 == '-':
+                result_num = temp_num * den3 - num3 * temp_den
+                result_den = temp_den * den3
+            elif op2 == '×':
+                result_num = temp_num * num3
+                result_den = temp_den * den3
+            else:  # ÷
+                result_num = temp_num * den3
+                result_den = temp_den * num3
+            
+            problem = f"({num1}/{den1}) {op} ({num2}/{den2}) {op2} ({num3}/{den3}) = ?"
+        else:
+            # Single operation
+            if op == '+':
+                result_num = num1 * den2 + num2 * den1
+                result_den = den1 * den2
+            elif op == '-':
+                result_num = num1 * den2 - num2 * den1
+                result_den = den1 * den2
+            elif op == '×':
+                result_num = num1 * num2
+                result_den = den1 * den2
+            else:  # ÷
+                result_num = num1 * den2
+                result_den = den1 * num2
+            
+            problem = f"({num1}/{den1}) {op} ({num2}/{den2}) = ?"
         
         # Simplify fraction
-        gcd = math.gcd(result_num, result_den)
+        gcd = math.gcd(abs(result_num), abs(result_den))
         result_num //= gcd
         result_den //= gcd
         
-        problem = f"({num1}/{den1}) {op} ({num2}/{den2}) = ?"
+        # Format answer
         if result_den == 1:
             answer = str(result_num)
+        elif result_num < 0 and result_den < 0:
+            answer = f"{abs(result_num)}/{abs(result_den)}"
+        elif result_den < 0:
+            answer = f"{-result_num}/{abs(result_den)}"
         else:
             answer = f"{result_num}/{result_den}"
+        
+        return problem, answer
+    
+    def _generate_rational_comparison(self, difficulty: str) -> Tuple[str, str]:
+        # Generate two fractions to compare
+        den1 = random.randint(2, 12)
+        num1 = random.randint(1, den1-1)
+        if random.random() > 0.7:  # 30% chance of negative
+            num1 = -num1
+            
+        den2 = random.randint(2, 12)
+        num2 = random.randint(1, den2-1)
+        if random.random() > 0.7:  # 30% chance of negative
+            num2 = -num2
+        
+        # Calculate decimal values for comparison
+        val1 = num1 / den1
+        val2 = num2 / den2
+        
+        # Choose comparison operator
+        if abs(val1 - val2) < 0.01:  # Values are effectively equal
+            op = '='
+            answer = '='
+        elif val1 < val2:
+            op = random.choice(['<', '≤'])
+            answer = '<' if op == '<' else '≤'
+        else:
+            op = random.choice(['>', '≥'])
+            answer = '>' if op == '>' else '≥'
+        
+        problem = f"Compare: {num1}/{den1} __ {num2}/{den2} (use <, >, ≤, ≥, or =)"
+        return problem, answer
+    
+    def _generate_rational_word_problem(self, difficulty: str) -> Tuple[str, str]:
+        problems = [
+            (
+                "A recipe calls for {n1}/{d1} cups of sugar, but you only have {n2}/{d2} cups. "
+                "How much more sugar do you need?",
+                "{n1}/{d1} - {n2}/{d2}"
+            ),
+            (
+                "A car travels {n1}/{d1} km in {n2}/{d2} hours. What is its speed in km/h?",
+                "{n1}/{d1} ÷ {n2}/{d2}"
+            ),
+            (
+                "If {n1}/{d1} of a number is {n2}/{d2}, what is the number?",
+                "{n2}/{d2} ÷ {n1}/{d1}"
+            ),
+            (
+                "A tank is {n1}/{d1} full. After adding {n2} liters, it becomes {n3}/{d3} full. "
+                "What is the capacity of the tank?",
+                "({n3}/{d3} - {n1}/{d1}) × capacity = {n2}"
+            )
+        ]
+        
+        if difficulty == 'easy':
+            template, expr = random.choice(problems[:3])
+        else:
+            template, expr = random.choice(problems)
+        
+        # Generate appropriate numbers
+        d1 = random.randint(2, 8)
+        n1 = random.randint(1, d1-1)
+        d2 = random.randint(2, 8)
+        n2 = random.randint(1, d2-1)
+        d3 = random.randint(2, 8)
+        n3 = random.randint(1, d3-1)
+        
+        # For the tank problem, ensure n3/d3 > n1/d1
+        if "tank" in template:
+            while n3/d3 <= n1/d1:
+                d3 = random.randint(2, 8)
+                n3 = random.randint(1, d3-1)
+        
+        # Format the problem
+        problem = template.format(n1=n1, d1=d1, n2=n2, d2=d2, n3=n3, d3=d3)
+        
+        # Calculate the answer
+        try:
+            if "tank" in template:
+                # Special handling for tank problem
+                capacity = n2 / ((n3/d3) - (n1/d1))
+                gcd = math.gcd(int(capacity * 1000), 1000)
+                num = int(capacity * 1000) // gcd
+                den = 1000 // gcd
+                if den == 1:
+                    answer = str(num)
+                else:
+                    answer = f"{num}/{den}"
+            else:
+                # Evaluate the expression
+                result = eval(expr.format(n1=n1, d1=d1, n2=n2, d2=d2, n3=n3, d3=d3))
+                if isinstance(result, float):
+                    if result == int(result):
+                        answer = str(int(result))
+                    else:
+                        answer = str(round(result, 3)).rstrip('0').rstrip('.')
+                else:
+                    answer = str(result)
+            
+            return problem, answer
+        except:
+            # If evaluation fails, try a different problem
+            return self._generate_rational_word_problem(difficulty)
+    
+    def _generate_rational_simplification(self, difficulty: str) -> Tuple[str, str]:
+        # Generate a fraction that can be simplified
+        if difficulty == 'easy':
+            factor = random.randint(2, 5)
+            den = random.randint(2, 5) * factor
+            num = random.randint(1, den//factor) * factor
+        else:
+            factor1 = random.randint(2, 5)
+            factor2 = random.randint(2, 5)
+            den = random.randint(2, 5) * factor1 * factor2
+            num = random.randint(1, den//(factor1*factor2)) * factor1 * factor2
+            
+            # Randomly make it negative
+            if random.random() > 0.7:
+                num = -num
+        
+        problem = f"Simplify the fraction {num}/{den} to its lowest terms."
+        
+        # Calculate simplified form
+        gcd = math.gcd(abs(num), abs(den))
+        simple_num = num // gcd
+        simple_den = den // gcd
+        
+        if simple_den == 1:
+            answer = str(simple_num)
+        elif simple_num < 0 and simple_den < 0:
+            answer = f"{abs(simple_num)}/{abs(simple_den)}"
+        elif simple_den < 0:
+            answer = f"{-simple_num}/{abs(simple_den)}"
+        else:
+            answer = f"{simple_num}/{simple_den}"
         
         return problem, answer
     
