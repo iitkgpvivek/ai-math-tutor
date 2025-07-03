@@ -137,13 +137,111 @@ class Grade7ProblemGenerator:
     def _generate_integer_word_problem(self, difficulty: str) -> Tuple[str, Union[int, str]]:
         """Generate word problems involving integers."""
         problem_types = [
+            self._generate_quiz_scoring_problem,  # Add the new problem type
             self._generate_temperature_problem,
             self._generate_elevation_problem,
             self._generate_money_problem,
             self._generate_sequence_problem,
             self._generate_average_problem
         ]
+        # Make quiz scoring problems more likely for hard difficulty
+        if difficulty == 'hard':
+            problem_types.extend([self._generate_quiz_scoring_problem] * 2)
         return random.choice(problem_types)(difficulty)
+        
+    def _generate_quiz_scoring_problem(self, difficulty: str) -> Tuple[str, Union[int, str]]:
+        """Generate quiz scoring problems with positive and negative marking."""
+        if difficulty == 'easy':
+            correct = random.randint(5, 15)
+            incorrect = random.randint(1, 10)
+            points_per_correct = random.choice([3, 4, 5])
+            points_per_incorrect = random.choice([1, 2])
+            
+            problem = (
+                f"In a quiz, {points_per_correct} marks are awarded for each correct answer, "
+                f"and {points_per_incorrect} marks are deducted for each incorrect answer. "
+                f"If a student answers {correct} questions correctly and {incorrect} questions incorrectly, "
+                "how many marks will they score?"
+            )
+            score = (correct * points_per_correct) - (incorrect * points_per_incorrect)
+            return problem, score
+            
+        else:  # hard difficulty - multi-step problems
+            problem_type = random.choice([
+                'find_attempted',
+                'find_correct',
+                'find_incorrect',
+                'passing_grade'
+            ])
+            
+            if problem_type == 'find_attempted':
+                total_questions = random.randint(15, 30)
+                correct = random.randint(5, total_questions - 5)
+                points_per_correct = random.choice([3, 4, 5])
+                points_per_incorrect = random.choice([1, 2])
+                total_score = (correct * points_per_correct) - ((total_questions - correct) * points_per_incorrect)
+                
+                problem = (
+                    f"In a test with {total_questions} questions, {points_per_correct} marks are given for each correct answer "
+                    f"and {points_per_incorrect} marks are deducted for each wrong answer. "
+                    f"A student scored {total_score} marks. How many questions did they attempt correctly?"
+                )
+                return problem, correct
+                
+            elif problem_type == 'find_correct':
+                total_questions = random.randint(15, 30)
+                points_per_correct = random.choice([3, 4, 5])
+                points_per_incorrect = random.choice([1, 2])
+                total_score = random.randint(20, 100)
+                
+                # Ensure the problem has a valid solution
+                max_possible = total_questions * points_per_correct
+                total_score = min(total_score, max_possible - 5)  # Ensure it's solvable
+                
+                problem = (
+                    f"A test has {total_questions} questions. {points_per_correct} marks are given for each correct answer, "
+                    f"and {points_per_incorrect} marks are deducted for each wrong answer. "
+                    f"If a student scored {total_score} marks, how many questions did they get right?"
+                )
+                
+                # Calculate correct answers (solving: c*pc - (t-c)*pi = score)
+                # c = (score + t*pi)/(pc + pi)
+                correct = (total_score + (total_questions * points_per_incorrect)) // (points_per_correct + points_per_incorrect)
+                return problem, correct
+                
+            elif problem_type == 'find_incorrect':
+                total_questions = random.randint(15, 30)
+                correct = random.randint(5, total_questions - 5)
+                points_per_correct = random.choice([3, 4, 5])
+                points_per_incorrect = random.choice([1, 2])
+                total_score = (correct * points_per_correct) - ((total_questions - correct) * points_per_incorrect)
+                
+                problem = (
+                    f"In an exam with {total_questions} questions, {points_per_correct} marks are awarded for each correct answer, "
+                    f"and {points_per_incorrect} marks are deducted for each wrong answer. "
+                    f"A student who answered all questions scored {total_score}. "
+                    "How many questions did they answer incorrectly?"
+                )
+                return problem, total_questions - correct
+                
+            else:  # passing_grade
+                total_questions = random.randint(15, 30)
+                passing_score = random.randint(50, 70)
+                points_per_correct = random.choice([3, 4, 5])
+                points_per_incorrect = random.choice([1, 2])
+                
+                problem = (
+                    f"An exam has {total_questions} questions. {points_per_correct} marks are given for each correct answer, "
+                    f"and {points_per_incorrect} marks are deducted for each wrong answer. "
+                    f"To pass, a student needs to score at least {passing_score} marks. "
+                    f"What is the minimum number of questions they need to answer correctly to pass?"
+                )
+                
+                # Solve for c: c*pc - (t-c)*pi >= passing_score
+                # c >= (passing_score + t*pi)/(pc + pi)
+                min_correct = (passing_score + (total_questions * points_per_incorrect) + 
+                              (points_per_correct + points_per_incorrect - 1)) // (points_per_correct + points_per_incorrect)
+                return problem, min_correct
     
     def _generate_temperature_problem(self, difficulty: str) -> Tuple[str, int]:
         """Generate temperature change problems."""
@@ -199,30 +297,41 @@ class Grade7ProblemGenerator:
                     balance += amount
                 else:
                     balance -= amount
-                problem += f" Then, ₹{amount} was {action}. "
+                    problem += f" Then, ₹{amount} was {action}."
             
-            problem += "What is the final balance?"
+            problem += " What is the final balance?"
             return problem, balance
     
-    def _generate_sequence_problem(self, difficulty: str) -> Tuple[str, str]:
+    def _generate_sequence_problem(self, difficulty: str) -> Tuple[str, Union[int, float]]:
         """Generate number sequence problems."""
         if difficulty == 'easy':
+            # Simple arithmetic sequences
             start = random.randint(-20, 20)
             step = random.choice([-3, -2, 2, 3, 4, 5])
-            sequence = [start + i*step for i in range(4)]
-            sequence_str = ", ".join(map(str, sequence[:3])) + ", ..."
-            return f"What is the next number in the sequence: {sequence_str}?", sequence[3]
+            sequence = [start + i*step for i in range(5)]  # Generate 5 elements
+            sequence_str = ", ".join(map(str, sequence[:4])) + ", ..."
+            return f"What is the next number in the sequence: {sequence_str}?", sequence[4]
         else:
-            # More complex patterns like alternating sequences
-            pattern = random.choice([
+            # More complex patterns with guaranteed length
+            patterns = [
                 ('alternating', [1, -2, 3, -4, 5, -6]),
-                ('squares', [1, 4, 9, 16, 25]),
-                ('cubes', [1, 8, 27, 64]),
-                ('primes', [2, 3, 5, 7, 11])
-            ])
-            pattern_name, sequence = pattern
-            sequence_str = ", ".join(map(str, sequence[:4])) + "..."
-            return f"Identify the pattern and find the next number: {sequence_str}", sequence[4]
+                ('squares', [1, 4, 9, 16, 25, 36]),
+                ('cubes', [1, 8, 27, 64, 125]),
+                ('primes', [2, 3, 5, 7, 11, 13]),
+                ('fibonacci', [1, 1, 2, 3, 5, 8, 13]),
+                ('powers_of_2', [2, 4, 8, 16, 32, 64]),
+                ('triangular', [1, 3, 6, 10, 15, 21]),
+                ('factorial', [1, 2, 6, 24, 120])
+            ]
+            
+            # Select a pattern and ensure it has enough elements
+            pattern_name, sequence = random.choice(patterns)
+            while len(sequence) < 5:  # Ensure we have enough elements
+                pattern_name, sequence = random.choice(patterns)
+                
+            # Show all but the last element in the problem
+            sequence_str = ", ".join(map(str, sequence[:-1])) + "..."
+            return f"Identify the pattern and find the next number: {sequence_str}", sequence[-1]
     
     def _generate_average_problem(self, difficulty: str) -> Tuple[str, Union[int, float]]:
         """Generate average/mean problems."""

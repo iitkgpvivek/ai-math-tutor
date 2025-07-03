@@ -30,16 +30,28 @@ def load_latest_worksheet():
         print(f"Error loading worksheet: {e}")
         return None
 
-def create_pdf(worksheet, include_answers=False):
-    """Create a PDF from the worksheet."""
+def create_pdf(worksheet, include_answers=False, output_path=None):
+    """Create a PDF from the worksheet.
+    
+    Args:
+        worksheet: Dictionary containing worksheet data
+        include_answers: Whether to include answers in the PDF
+        output_path: Custom output path for the PDF. If not provided, generates a default path.
+    """
     if not worksheet:
         return
     
     # Set up the PDF document
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"worksheet_answers_{timestamp}.pdf" if include_answers else f"worksheet_questions_{timestamp}.pdf"
+    if output_path is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"worksheet_answers_{timestamp}.pdf" if include_answers else f"worksheet_questions_{timestamp}.pdf"
+        output_path = os.path.join('worksheets', filename)
+    
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    
     doc = SimpleDocTemplate(
-        os.path.join('worksheets', filename),
+        output_path,
         pagesize=letter,
         rightMargin=72, leftMargin=72,
         topMargin=72, bottomMargin=72
@@ -118,7 +130,7 @@ def create_pdf(worksheet, include_answers=False):
     
     # Generate the PDF
     doc.build(elements)
-    print(f"Generated {filename}")
+    print(f"Generated {os.path.basename(output_path)}")
 
 def main():
     # Load the latest worksheet
