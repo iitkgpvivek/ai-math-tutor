@@ -56,8 +56,8 @@ def generate_integer_problems(count=10, max_attempts=5):
     
     while len(problems) < count and attempts < max_attempts * count:
         try:
-            # Set all problems to hard difficulty
-            difficulty = 'hard'
+            # Set all problems to medium difficulty
+            difficulty = 'medium'
             
             # Randomly select a problem type based on weights
             method_idx = random.choices(range(len(methods)), weights=weights, k=1)[0]
@@ -123,8 +123,8 @@ def generate_fraction_problems(count=10, max_attempts=5):
             problem_funcs, weights = zip(*problem_types)
             selected_func = random.choices(problem_funcs, weights=weights, k=1)[0]
             
-            # Set all problems to hard difficulty
-            difficulty = 'hard'
+            # Set all problems to medium difficulty
+            difficulty = 'medium'
             
             # Generate the problem
             problem, answer = getattr(generator, selected_func)(difficulty)
@@ -153,21 +153,73 @@ def generate_fraction_problems(count=10, max_attempts=5):
     
     return problems
 
-def generate_problems():
-    """Generate 10 integer and 10 fraction problems with fallback logic."""
-    # Generate integer problems
-    integer_problems = generate_integer_problems(10)
+def generate_problems(topics=None, total_problems=20):
+    """Generate problems from specified topics with even distribution.
     
-    # If we couldn't generate enough integer problems, fill with fraction problems
-    if len(integer_problems) < 10:
-        print(f"Warning: Could only generate {len(integer_problems)} integer problems. Adding more fraction problems.")
+    Args:
+        topics: List of topic names to include. If None, uses all available.
+        total_problems: Total number of problems to generate.
+    
+    Returns:
+        List of problem dictionaries.
+    """
+    # Define available topic generators and their weights
+    topic_generators = {
+        'integer': (generate_integer_problems, 1.0),
+        'fraction': (generate_fraction_problems, 1.0),
+        # Add new topics here as they become available
+        # 'algebra': (generate_algebra_problems, 1.0),
+        # 'geometry': (generate_geometry_problems, 1.0),
+    }
+    
+    # Use all available topics if none specified
+    if topics is None:
+        topics = list(topic_generators.keys())
+    else:
+        # Filter to only include available topics
+        topics = [t for t in topics if t in topic_generators]
+        if not topics:
+            raise ValueError("No valid topics specified")
+    
+    # Calculate problems per topic
+    problems_per_topic = total_problems // len(topics)
+    remainder = total_problems % len(topics)
+    
+    all_problems = []
+    
+    # Generate problems for each topic
+    for i, topic in enumerate(topics):
+        # Distribute remainder problems among topics
+        count = problems_per_topic + (1 if i < remainder else 0)
+        if count == 0:
+            continue
+            
+        generator_func, _ = topic_generators[topic]
+        try:
+            problems = generator_func(count)
+            all_problems.extend(problems)
+            print(f"Generated {len(problems)} {topic} problems")
+        except Exception as e:
+            print(f"Error generating {topic} problems: {e}")
+    
+    # Fill any shortfall with problems from other topics
+    if len(all_problems) < total_problems:
+        shortfall = total_problems - len(all_problems)
+        print(f"Warning: Only generated {len(all_problems)}/{total_problems} problems. Attempting to fill shortfall...")
         
-    # Generate fraction problems (make up any shortfall from integer problems)
-    fraction_count = 10 + (10 - len(integer_problems))
-    fraction_problems = generate_fraction_problems(fraction_count)
-    
-    # Combine problems, ensuring we have exactly 20 total
-    all_problems = (integer_problems + fraction_problems)[:20]
+        # Try to get more problems from available topics
+        for topic in topics:
+            if shortfall <= 0:
+                break
+                
+            try:
+                generator_func, _ = topic_generators[topic]
+                extra = generator_func(shortfall)
+                all_problems.extend(extra)
+                shortfall -= len(extra)
+                print(f"Added {len(extra)} more {topic} problems")
+            except Exception as e:
+                print(f"Error generating extra {topic} problems: {e}")
     
     # Shuffle the problems
     random.shuffle(all_problems)
@@ -181,14 +233,21 @@ def save_worksheet(problems):
     folder_path = os.path.join('worksheets', date_str)
     os.makedirs(folder_path, exist_ok=True)
     
-    # Count problem types for the topic
-    int_count = sum(1 for p in problems if p['type'] == 'integer')
-    frac_count = sum(1 for p in problems if p['type'] == 'fraction')
+    # Count problems by type
+    problem_counts = {}
+    for p in problems:
+        problem_type = p['type']
+        problem_counts[problem_type] = problem_counts.get(problem_type, 0) + 1
+    
+    # Create topic description
+    topic_parts = [f"{count} {typ.capitalize()}" for typ, count in problem_counts.items()]
+    topic_str = " & ".join(topic_parts) + " Problems"
     
     # Prepare worksheet data
     worksheet = {
-        'topic': f'Word Problems - {int_count} Integer & {frac_count} Fraction Problems',
+        'topic': f'Word Problems - {topic_str}',
         'date': date_str,
+        'problem_counts': problem_counts,
         'problems': problems
     }
     
@@ -202,14 +261,27 @@ def save_worksheet(problems):
 def main():
     print("Generating custom worksheet...")
     
+    # Define available topics
+    available_topics = ['integer', 'fraction']  # Add more as they become available
+    
+    # For now, use all available topics
+    # In the future, you could add command-line arguments to select specific topics
+    selected_topics = available_topics
+    
+    print(f"Selected topics: {', '.join(selected_topics)}")
+    
     # Generate problems
-    problems = generate_problems()
+    problems = generate_problems(topics=selected_topics, total_problems=20)
+    
+    if not problems:
+        print("Error: No problems were generated.")
+        return
     
     # Save to dated folder
     worksheet, folder_path = save_worksheet(problems)
     
     # Generate PDFs
-    print("Creating PDFs...")
+    print("\nCreating PDFs...")
     
     # Questions only
     questions_pdf = os.path.join(folder_path, 'worksheet_questions.pdf')
@@ -219,9 +291,17 @@ def main():
     answers_pdf = os.path.join(folder_path, 'worksheet_answers.pdf')
     create_pdf(worksheet, include_answers=True, output_path=answers_pdf)
     
-    print(f"\nWorksheet generation complete!")
+    # Print summary
+    print("\n" + "="*50)
+    print("WORKSHEET GENERATION COMPLETE")
+    print("-"*50)
+    print(f"Total problems: {len(problems)}")
+    for typ, count in worksheet['problem_counts'].items():
+        print(f"- {typ.capitalize()}: {count}")
+    print("\nGenerated files:")
     print(f"- Questions: {questions_pdf}")
     print(f"- Answers: {answers_pdf}")
+    print("="*50)
 
 if __name__ == "__main__":
     main()
