@@ -368,81 +368,121 @@ class IntegerWordProblemGenerator:
             problem += "Which team won and with what score?"
             return problem, f"Team {winner} with {winning_score} points"
     
+    def _find_smallest_number_greater_than(self, n: int, a: int, rem_a: int, b: int, rem_b: int) -> int:
+        """Find the smallest number > n that leaves remainder rem_a when divided by a and rem_b when divided by b."""
+        x = n + 1
+        while True:
+            if x % a == rem_a and x % b == rem_b:
+                return x
+            x += 1
+            # Safety check to prevent infinite loops
+            if x > n + 1000:
+                return -1
+
     def _generate_real_world_problem(self, difficulty: str) -> Tuple[str, Union[int, str]]:
-        """Generate real-world application problems."""
+        """Generate real-world application problems with increased complexity."""
         scenarios = [
-            ('elevator', 'floors', 1, 20, 1, 5, 'The elevator starts at floor {} and goes {} {} {} floor(s). On which floor does it stop?'),
-            ('subway', 'stops', 0, 10, 1, 4, 'The subway is at stop {}. It travels {} {} {} stop(s). At which stop does it arrive?'),
-            ('temperature', 'degrees', -10, 35, 1, 15, 'The temperature is {}°C. It changes by {}°C. What is the new temperature?')
+            # Elevator with multiple stops
+            ('elevator', 'floors', 1, 30, 1, 5, 
+             'An elevator starts at floor {}. It goes up {} floors, down {} floors, then up {} more floors. On which floor does it stop?'),
+            
+            # Temperature change with multiple steps
+            ('temperature', '°C', -15, 40, 2, 15, 
+             'The temperature is {}°C at 6 AM. By 9 AM it rises by {}°C, then falls by {}°C by noon. ' 
+             'In the afternoon, it rises by {}°C. What is the final temperature?'),
+            
+            # Financial scenario
+            ('bank account', 'dollars', 100, 1000, 10, 100,
+             'You have ${} in your bank account. You deposit ${} on Monday, withdraw ${} on Wednesday, ' 
+             'and deposit another ${} on Friday. What is your final balance?')
         ]
         scenario, unit, min_start, max_start, min_change, max_change, template = random.choice(scenarios)
         
         if difficulty == 'easy':
             start = random.randint(min_start, max_start)
-            change = random.randint(min_change, max_change)
-            direction = random.choice(['up', 'down'])
+            changes = [random.randint(min_change, max_change) for _ in range(3)]
             
-            if direction == 'up':
-                answer = start + change
-            else:
-                answer = start - change
+            if scenario == 'elevator':
+                answer = start + changes[0] - changes[1] + changes[2]
+                problem = template.format(start, changes[0], changes[1], changes[2])
+            elif scenario == 'temperature':
+                answer = start + changes[0] - changes[1] + changes[2]
+                problem = template.format(start, changes[0], changes[1], changes[2])
+            else:  # bank account
+                answer = start + changes[0] - changes[1] + changes[2]
+                problem = template.format(start, changes[0], changes[1], changes[2])
                 
-            problem = template.format(start, change, direction, '' if change == 1 else '')
             return problem, answer
             
         elif difficulty == 'medium':
             start = random.randint(min_start, max_start)
             changes = [random.randint(min_change, max_change) for _ in range(2)]
-            directions = [random.choice(['up', 'down']) for _ in range(2)]
             
-            current = start
-            for i in range(2):
-                if directions[i] == 'up':
-                    current += changes[i]
-                else:
-                    current -= changes[i]
-            
-            problem = template.format(start, changes[0], directions[0], '' if changes[0] == 1 else '')
-            problem += f" Then it goes {directions[1]} {changes[1]} {unit}. What's the final {unit.split()[0]}?"
-            return problem, current
+            if scenario == 'elevator':
+                answer = start + changes[0] - changes[1]
+                problem = template.format(start, changes[0], changes[1], 0)
+            elif scenario == 'temperature':
+                answer = start + changes[0] - changes[1]
+                problem = template.format(start, changes[0], changes[1], 0)
+            else:  # bank account
+                answer = start + changes[0] - changes[1]
+                problem = template.format(start, changes[0], changes[1], 0)
+                
+            return problem, answer
             
         else:  # hard
             start = random.randint(min_start, max_start)
             num_changes = random.randint(3, 5)
             changes = [random.randint(min_change, max_change) for _ in range(num_changes)]
-            directions = [random.choice(['up', 'down']) for _ in range(num_changes)]
             
             current = start
             problem = f"A {scenario} starts at {start} {unit}. "
             for i in range(num_changes):
-                if directions[i] == 'up':
+                if scenario == 'elevator':
                     current += changes[i]
-                else:
-                    current -= changes[i]
-                problem += f"It goes {directions[i]} {changes[i]} {unit}. "
+                elif scenario == 'temperature':
+                    current += changes[i]
+                else:  # bank account
+                    if i % 2 == 0:
+                        current += changes[i]
+                    else:
+                        current -= changes[i]
+                problem += f"It goes {changes[i]} {unit}. "
             problem += f"What's the final {unit.split()[0]}?"
             return problem, current
     
     def _generate_advanced_challenge_problem(self, difficulty: str) -> Tuple[str, Union[int, float, str]]:
         """Generate advanced challenge problems involving multiple operations and concepts."""
         if difficulty == 'easy':
-            # Simple two-step problems
-            a, b, c = random.randint(1, 10), random.randint(1, 10), random.randint(1, 10)
-            ops = random.choice([('+', '+'), ('+', '-'), ('-', '+'), ('-', '-')])
+            # Three-step problems with larger numbers
+            a, b, c, d = [random.randint(10, 50) for _ in range(4)]
+            ops = random.choice([
+                (('+', '+', '-'), f"Add {a} and {b}, then add {c}, and finally subtract {d}"),
+                (('*', '+', '-'), f"Multiply {a} by {b}, add {c}, then subtract {d}"),
+                (('+', '*', '-'), f"Add {a} and {b}, multiply by {c}, then subtract {d}")
+            ])
             
-            if ops == ('+', '+'):
-                answer = a + b + c
-                problem = f"Add {a}, {b}, and {c} together."
-            elif ops == ('+', '-'):
-                answer = a + b - c
-                problem = f"Add {a} and {b}, then subtract {c}."
-            elif ops == ('-', '+'):
-                answer = a - b + c
-                problem = f"Subtract {b} from {a}, then add {c}."
-            else:  # ('-', '-')
-                answer = a - b - c
-                problem = f"Start with {a}, subtract {b}, then subtract {c} more."
+            op1, op2, op3 = ops[0]
+            problem = f"{ops[1]}. What is the result?"
+            
+            # Calculate answer
+            if op1 == '+':
+                result = a + b
+            elif op1 == '*':
+                result = a * b
                 
+            if op2 == '+':
+                result += c
+            elif op2 == '*':
+                result *= c
+                
+            if op3 == '-':
+                result -= d
+            elif op3 == '+':
+                result += d
+                
+            return problem, result
+        
         elif difficulty == 'medium':
             # Problems with multiplication/division and addition/subtraction
             a, b, c = random.randint(2, 12), random.randint(2, 12), random.randint(1, 20)
@@ -467,28 +507,34 @@ class IntegerWordProblemGenerator:
                 problem = f"Divide {a} by {b}, then subtract {c}."
                 
         else:  # hard
-            # Multi-step problems with order of operations
-            a, b, c, d = [random.randint(2, 10) for _ in range(4)]
-            problem_type = random.choice(['add_multiply', 'subtract_divide', 'mixed'])
+            # Complex multi-step problems with order of operations and larger numbers
+            nums = [random.randint(5, 40) for _ in range(6)]
             
-            if problem_type == 'add_multiply':
-                answer = (a + b) * (c + d)
-                problem = f"Add {a} and {b}, then multiply the result by the sum of {c} and {d}."
-            elif problem_type == 'subtract_divide':
-                # Ensure integer division and positive result
-                a = random.randint(10, 20)
-                b = random.randint(1, a//2)
-                c = random.randint(2, 5)
-                d = random.randint(1, c-1)
-                answer = (a - b) // (c - d)
-                problem = f"Subtract {b} from {a}, then divide the result by the difference between {c} and {d}."
-            else:  # mixed
-                a = random.randint(5, 15)
-                b = random.randint(2, 5)
-                c = random.randint(1, 4)
-                d = random.randint(1, 10)
-                answer = (a * b) + (c * d)
-                problem = f"Multiply {a} by {b}, then add the product of {c} and {d}."
+            # Choose between different problem structures
+            problem_type = random.choice([
+                # Nested operations with fractions
+                (f"Calculate: (({nums[0]} + {nums[1]}) × {nums[2]}) - ({nums[3]} × {nums[4]}) + {nums[5]}",
+                 lambda: ((nums[0] + nums[1]) * nums[2]) - (nums[3] * nums[4]) + nums[5]),
+                 
+                # Multi-step with division and multiplication
+                (f"A train travels {nums[0]} km in {nums[1]} hours, then {nums[2]} km in {nums[3]} hours. "
+                 f"What's the average speed for the entire journey in km/h?",
+                 lambda: round((nums[0] + nums[2]) / ((nums[1] + nums[3])), 2)),
+                 
+                # Real-world scenario with multiple operations
+                (f"A store sells items for ${nums[0]}, ${nums[1]}, and ${nums[2]}. "
+                 f"If you buy {nums[3]} of the first item, {nums[4]} of the second, "
+                 f"and {nums[5]} of the third, how much do you spend in total?",
+                 lambda: (nums[0] * nums[3]) + (nums[1] * nums[4]) + (nums[2] * nums[5])),
+                 
+                # Number theory problem
+                (f"Find the smallest number greater than {nums[0]} that leaves a remainder of {nums[1]%5} "
+                 f"when divided by 5 and a remainder of {nums[2]%7} when divided by 7.",
+                 lambda: self._find_smallest_number_greater_than(nums[0], 5, nums[1]%5, 7, nums[2]%7))
+            ])
+            
+            problem, answer_func = problem_type
+            return problem, answer_func()
         
         return problem, answer
     
