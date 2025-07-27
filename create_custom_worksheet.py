@@ -9,6 +9,7 @@ import random
 from datetime import datetime
 from integer_word_problem_generators import IntegerWordProblemGenerator
 from fractions_word_problem_generators import FractionWordProblemGenerator
+from simple_equations_generators import SimpleEquationsGenerator
 from generate_pdf import create_pdf
 
 def is_placeholder(problem_text):
@@ -56,8 +57,8 @@ def generate_integer_problems(count=10, max_attempts=5):
     
     while len(problems) < count and attempts < max_attempts * count:
         try:
-            # Set all problems to medium difficulty
-            difficulty = 'medium'
+            # Set all integer problems to hard difficulty
+            difficulty = 'hard'
             
             # Randomly select a problem type based on weights
             method_idx = random.choices(range(len(methods)), weights=weights, k=1)[0]
@@ -123,8 +124,8 @@ def generate_fraction_problems(count=10, max_attempts=5):
             problem_funcs, weights = zip(*problem_types)
             selected_func = random.choices(problem_funcs, weights=weights, k=1)[0]
             
-            # Set all problems to medium difficulty
-            difficulty = 'medium'
+            # Set all integer problems to hard difficulty
+            difficulty = 'hard'
             
             # Generate the problem
             problem, answer = getattr(generator, selected_func)(difficulty)
@@ -153,6 +154,75 @@ def generate_fraction_problems(count=10, max_attempts=5):
     
     return problems
 
+def generate_simple_equations_problems(count=10, max_attempts=5):
+    """Generate simple equations word problems using the dedicated generator."""
+    generator = SimpleEquationsGenerator()
+    problems = []
+    attempts = 0
+    
+    # List of available problem types (intermediate difficulty)
+    # Only including types that are actually implemented in SimpleEquationsGenerator
+    problem_types = [
+        'age_related_sum',
+        'age_related_difference',
+        'age_related_ratio',
+        'number',
+        'consecutive_integers',
+        'money_basic',
+        'money_discount',
+        'rectangle_perimeter',
+        'rectangle_area',
+        'square_perimeter',
+        'square_area',
+        'triangle_perimeter',
+        'triangle_area',
+        'circle_circumference',
+        'circle_area',
+        'shopping',  # Using the base shopping type which will be handled by the generator
+        'drt_basic',
+        'work_rate_basic'
+    ]
+    
+    while len(problems) < count and attempts < max_attempts * count:
+        attempts += 1
+        try:
+            # Select a random problem type
+            problem_type = random.choice(problem_types)
+            
+            # Generate problem with intermediate difficulty
+            problem = generator.generate_problem(
+                problem_type=problem_type,
+                difficulty='intermediate'
+            )
+            
+            # Debug print
+            print(f"Generated problem type: {problem_type}")
+            print(f"Problem statement: {problem.statement[:100]}..." if problem.statement else "No statement")
+            
+            # Convert problem to the expected format
+            problem_dict = {
+                'problem': problem.statement,  # Using statement to match the Problem class
+                'answer': problem.answer,
+                'solution': '\n'.join(problem.solution_steps),
+                'type': 'simple_equations',
+                'subtype': problem.problem_type,
+                'difficulty': problem.difficulty
+            }
+            
+            # Check if this is a valid problem (not a placeholder and has all required fields)
+            if (not is_placeholder(problem_dict['problem']) and 
+                problem_dict['problem'] and 
+                problem_dict['answer'] is not None):
+                problems.append(problem_dict)
+                
+        except Exception as e:
+            print(f"Error generating simple equations problem: {e}")
+    
+    if len(problems) < count:
+        print(f"Warning: Only generated {len(problems)}/{count} unique simple equations problems after {attempts} attempts")
+    
+    return problems
+
 def generate_problems(topics=None, total_problems=20):
     """Generate problems from specified topics with even distribution.
     
@@ -167,8 +237,8 @@ def generate_problems(topics=None, total_problems=20):
     topic_generators = {
         'integer': (generate_integer_problems, 1.0),
         'fraction': (generate_fraction_problems, 1.0),
+        'simple_equations': (generate_simple_equations_problems, 1.0),
         # Add new topics here as they become available
-        # 'algebra': (generate_algebra_problems, 1.0),
         # 'geometry': (generate_geometry_problems, 1.0),
     }
     
@@ -261,17 +331,33 @@ def save_worksheet(problems):
 def main():
     print("Generating custom worksheet...")
     
-    # Define available topics
-    available_topics = ['integer', 'fraction']  # Add more as they become available
+    # Define problem distribution
+    problem_distribution = {
+        'integer': 5,         # 5 hard integer problems
+        'fraction': 5,        # 5 hard fraction problems
+        'simple_equations': 10  # 10 intermediate simple equations problems
+    }
     
-    # For now, use all available topics
-    # In the future, you could add command-line arguments to select specific topics
-    selected_topics = available_topics
+    # Generate problems for each topic
+    all_problems = []
+    for topic, count in problem_distribution.items():
+        try:
+            if topic == 'integer':
+                problems = generate_integer_problems(count=count)
+            elif topic == 'fraction':
+                problems = generate_fraction_problems(count=count)
+            elif topic == 'simple_equations':
+                problems = generate_simple_equations_problems(count=count)
+            
+            print(f"Generated {len(problems)} {topic} problems")
+            all_problems.extend(problems)
+            
+        except Exception as e:
+            print(f"Error generating {topic} problems: {e}")
     
-    print(f"Selected topics: {', '.join(selected_topics)}")
-    
-    # Generate problems
-    problems = generate_problems(topics=selected_topics, total_problems=20)
+    # Shuffle the problems
+    random.shuffle(all_problems)
+    problems = all_problems
     
     if not problems:
         print("Error: No problems were generated.")
