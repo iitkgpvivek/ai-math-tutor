@@ -154,7 +154,7 @@ class IntegerWordProblemGenerator:
             
         elif difficulty == 'medium':
             items = [
-                ('notebook', 25, 50), ('pens', 5, 20), ('pencils', 3, 15),
+                ('notebook', 25, 50), ('pen', 5, 20), ('pencil', 3, 15),
                 ('eraser', 2, 10), ('ruler', 15, 30)
             ]
             item_name, min_p, max_p = random.choice(items)

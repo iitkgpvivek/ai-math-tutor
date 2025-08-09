@@ -25,6 +25,13 @@ worksheets/
 project_backup/
 *.pdf
 
+# Data and cache
+data/llm_cache/
+data/old_json_backup/
+data/old_problems_backup/
+data/problems/*.json
+!data/problems/README.md  # Keep the README if it exists
+
 # Environment variables
 .env
 

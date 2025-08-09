@@ -14,15 +14,45 @@ from generate_pdf import create_pdf
 
 def is_placeholder(problem_text):
     """Check if a problem text is a placeholder."""
-    placeholder_indicators = [
+    if not problem_text or not isinstance(problem_text, str):
+        return True
+    
+    # List of phrases that indicate a placeholder problem
+    placeholder_phrases = [
+        'not implemented',
+        'coming soon',
+        'TODO',
         'placeholder',
-        'problem statement',
-        'problem text',
-        'example problem',
-        'sample problem'
+        'not available'
     ]
-    problem_lower = problem_text.lower()
-    return any(indicator in problem_lower for indicator in placeholder_indicators)
+    
+    return any(phrase in problem_text.lower() for phrase in placeholder_phrases)
+
+def get_problem_pattern(problem_text, problem_type):
+    """Extract a pattern from the problem text to identify similar problems."""
+    if not problem_text or not problem_type:
+        return None
+        
+    # For operation sequence problems (like the ones in the example)
+    if 'divide' in problem_text.lower() and 'add' in problem_text.lower() and 'multiply' in problem_text.lower():
+        # Extract the operation sequence pattern
+        operations = []
+        if 'divide' in problem_text.lower():
+            operations.append('D')
+        if 'add' in problem_text.lower():
+            operations.append('A')
+        if 'multiply' in problem_text.lower():
+            operations.append('M')
+        if 'subtract' in problem_text.lower():
+            operations.append('S')
+        return f"operation_sequence_{'_'.join(operations)}"
+        
+    # For baking/recipe problems
+    if 'batch' in problem_text.lower() and 'cups' in problem_text.lower():
+        return "baking_recipe_division"
+        
+    # Default to problem_type if no specific pattern matches
+    return problem_type
 
 def generate_integer_problems(count=10, max_attempts=5):
     """Generate integer word problems using the dedicated generator."""
@@ -154,14 +184,20 @@ def generate_fraction_problems(count=10, max_attempts=5):
     
     return problems
 
-def generate_simple_equations_problems(count=10, max_attempts=5):
-    """Generate simple equations word problems using the dedicated generator."""
+def generate_simple_equations_problems(count=10, max_attempts=5, exclude_types=None):
+    """Generate simple equations word problems using the dedicated generator.
+    
+    Args:
+        count: Number of problems to generate
+        max_attempts: Maximum number of attempts to generate unique problems
+        exclude_types: Set of problem types to exclude from generation
+    """
     generator = SimpleEquationsGenerator()
     problems = []
     attempts = 0
+    used_types = set()
     
     # List of available problem types (intermediate difficulty)
-    # Only including types that are actually implemented in SimpleEquationsGenerator
     problem_types = [
         'age_related_sum',
         'age_related_difference',
@@ -178,16 +214,26 @@ def generate_simple_equations_problems(count=10, max_attempts=5):
         'triangle_area',
         'circle_circumference',
         'circle_area',
-        'shopping',  # Using the base shopping type which will be handled by the generator
+        'shopping',
         'drt_basic',
         'work_rate_basic'
     ]
     
-    while len(problems) < count and attempts < max_attempts * count:
+    # Filter out excluded types
+    if exclude_types:
+        problem_types = [pt for pt in problem_types if pt not in exclude_types]
+    
+    # Make a copy to avoid modifying the original list
+    available_types = problem_types.copy()
+    
+    while len(problems) < count and attempts < max_attempts * count and available_types:
         attempts += 1
         try:
-            # Select a random problem type
-            problem_type = random.choice(problem_types)
+            # Select a random problem type from remaining available types
+            if not available_types:
+                break
+                
+            problem_type = random.choice(available_types)
             
             # Generate problem with intermediate difficulty
             problem = generator.generate_problem(
@@ -203,17 +249,30 @@ def generate_simple_equations_problems(count=10, max_attempts=5):
             problem_dict = {
                 'problem': problem.statement,  # Using statement to match the Problem class
                 'answer': problem.answer,
-                'solution': '\n'.join(problem.solution_steps),
+                'solution': '\n'.join(problem.solution_steps) if problem.solution_steps else '',
                 'type': 'simple_equations',
-                'subtype': problem.problem_type,
+                'subtype': problem_type,  # Use the selected problem_type to ensure consistency
                 'difficulty': problem.difficulty
             }
             
-            # Check if this is a valid problem (not a placeholder and has all required fields)
+            # Check if this is a valid problem (not a placeholder, has all required fields, and type not used)
             if (not is_placeholder(problem_dict['problem']) and 
                 problem_dict['problem'] and 
-                problem_dict['answer'] is not None):
+                problem_dict['answer'] is not None and
+                problem_type not in used_types):
+                
+                # Add to used types and remove from available types
+                used_types.add(problem_type)
+                if problem_type in available_types:
+                    available_types.remove(problem_type)
+                
                 problems.append(problem_dict)
+                print(f"✓ Added problem type: {problem_type}")
+                
+                # If we've used all types, reset available types (but keep track of used types)
+                if not available_types and len(problems) < count:
+                    print("All problem types used, recycling types...")
+                    available_types = [pt for pt in problem_types if pt not in used_types]
                 
         except Exception as e:
             print(f"Error generating simple equations problem: {e}")
@@ -338,22 +397,63 @@ def main():
         'simple_equations': 10  # 10 intermediate simple equations problems
     }
     
-    # Generate problems for each topic
+    # Track used problem patterns and types across all categories
+    used_problem_patterns = set()
     all_problems = []
+    
+    # Generate problems for each topic
     for topic, count in problem_distribution.items():
         try:
-            if topic == 'integer':
-                problems = generate_integer_problems(count=count)
-            elif topic == 'fraction':
-                problems = generate_fraction_problems(count=count)
-            elif topic == 'simple_equations':
-                problems = generate_simple_equations_problems(count=count)
+            problems = []
+            attempts = 0
+            max_attempts_per_topic = count * 2  # Allow some retries for unique problems
             
-            print(f"Generated {len(problems)} {topic} problems")
+            while len(problems) < count and attempts < max_attempts_per_topic:
+                attempts += 1
+                batch_problems = []
+                
+                # Generate a batch of problems
+                if topic == 'integer':
+                    batch_problems = generate_integer_problems(count=1)
+                elif topic == 'fraction':
+                    batch_problems = generate_fraction_problems(count=1)
+                elif topic == 'simple_equations':
+                    batch_problems = generate_simple_equations_problems(count=1)
+                
+                # Process each generated problem
+                for problem in batch_problems:
+                    if not problem or 'problem' not in problem:
+                        continue
+                        
+                    # Get problem pattern for duplicate detection
+                    problem_pattern = get_problem_pattern(
+                        problem['problem'],
+                        problem.get('subtype', '')
+                    )
+                    
+                    # Skip if we've already used this pattern
+                    if problem_pattern in used_problem_patterns:
+                        print(f"Skipping duplicate pattern: {problem_pattern}")
+                        continue
+                        
+                    # Add pattern to used patterns
+                    used_problem_patterns.add(problem_pattern)
+                    problem['pattern'] = problem_pattern  # Store pattern for reference
+                    problems.append(problem)
+                    
+                    print(f"✓ Added {topic} problem - Pattern: {problem_pattern}")
+                    
+                    # Stop if we have enough problems
+                    if len(problems) >= count:
+                        break
+            
+            print(f"Generated {len(problems)} unique {topic} problems")
             all_problems.extend(problems)
             
         except Exception as e:
             print(f"Error generating {topic} problems: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Shuffle the problems
     random.shuffle(all_problems)
