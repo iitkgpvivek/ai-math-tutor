@@ -1,4 +1,0 @@
-{
-  "variation": "If a pack of mangoes costs ₹80 and a pack of apples costs ₹60, how many apples are equal to 4 mangoes in terms of cost (in ₹)?",
-  "explanation": "Changed the context to Indian fruits and currency, used different numbers for prices, and maintained the concept of ratio"
-}

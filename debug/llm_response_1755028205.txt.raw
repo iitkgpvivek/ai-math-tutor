@@ -1,4 +1,0 @@
-{
-  "variation": "A cycle is sold for ₹500. If its price decreases at the rate of ₹25 per day, how much will it cost after 10 days?",
-  "explanation": "Changed the object (from temperature to a cycle's price), numbers, and context while maintaining the rate-change concept."
-}
