@@ -14,14 +14,8 @@ import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
-# Import the worksheet generator functions
-from create_custom_worksheet import (
-    generate_integer_problems,
-    generate_fraction_problems,
-    generate_simple_equations_problems,
-    save_worksheet,
-    create_pdf
-)
+# Import the worksheet utility functions
+from create_custom_worksheet import save_worksheet, create_pdf
 
 # Import the problem importer
 from problem_importer import ProblemImporter
@@ -45,11 +39,10 @@ DIFFICULTY_LEVELS = {
     }
 }
 
-# Available topics and their generator functions
+# Available topics and their configurations
 TOPIC_GENERATORS = {
     'integer': {
         'name': 'Integer Problems',
-        'generator': generate_integer_problems,
         'default_count': 5,
         'description': 'Problems involving integer operations and word problems',
         'default_difficulty': 'intermediate',
@@ -57,7 +50,6 @@ TOPIC_GENERATORS = {
     },
     'fraction': {
         'name': 'Fraction Problems',
-        'generator': generate_fraction_problems,
         'default_count': 5,
         'description': 'Problems involving fractions and mixed numbers',
         'default_difficulty': 'intermediate',
@@ -65,7 +57,6 @@ TOPIC_GENERATORS = {
     },
     'simple_equations': {
         'name': 'Simple Equations',
-        'generator': generate_simple_equations_problems,
         'default_count': 10,
         'description': 'Basic algebraic equations and word problems',
         'default_difficulty': 'intermediate',

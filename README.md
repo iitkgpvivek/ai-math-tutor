@@ -1,103 +1,71 @@
-# 📚 Grade 7 Math Worksheet Generator
+# 🧮 AI Math Worksheet Generator
 
-A local math worksheet generator that creates practice problems for 7th grade students, focusing on fractions and decimals. The application generates worksheets in JSON format and can convert them to PDF with separate question and answer sheets.
+An AI-powered math worksheet generator for 7th grade students, using local LLM (Ollama) to create customized practice problems with detailed solutions. The tool supports multiple problem types and difficulty levels, with PDF export capabilities.
 
-![Math Worksheet Demo](https://img.shields.io/badge/Status-Active-brightgreen) 
-![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue) 
+![Status](https://img.shields.io/badge/Status-Active-brightgreen) 
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue) 
 ![License](https://img.shields.io/badge/License-MIT-green)
+![AI](https://img.shields.io/badge/AI-Powered-FFD700)
 
 ## ✨ Features
 
-- **Local Generation**: All worksheets are generated and stored locally
-- **Focused Content**: Special emphasis on fractions and decimals
-- **Multiple Difficulty Levels**: Problems range from basic to challenging
-- **Answer Keys**: Automatically generated with each worksheet
-- **PDF Export**: Convert worksheets to printable PDF format
-- **Problem Types**:
-  - Fraction operations (+, -, ×, ÷)
-  - Decimal operations
+- **AI-Powered**: Uses local LLM (Ollama) for problem generation
+- **Multiple Problem Types**:
+  - Integer operations
+  - Simple equations
   - Word problems
-  - Fraction-decimal conversions
-  - Mixed numbers
+  - Real-life applications
+- **Customizable Difficulty**: Easy, Intermediate, Hard
+- **PDF Export**: Generate printable worksheets with solutions
+- **Interactive CLI**: User-friendly interface
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package manager)
-
-### Installation
-
-1. **Clone the repository**:
+1. **Install Ollama** (if not already installed):
    ```bash
-   git clone https://github.com/yourusername/grade7-math-worksheets.git
-   cd grade7-math-worksheets
+   # Follow instructions at https://ollama.ai/
    ```
 
-2. **Create and activate a virtual environment (recommended)**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**:
+2. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
+
+3. **Run the generator**:
+   ```bash
+   python custom_worksheet_creator.py
+   ```
 ## 📝 Usage
 
-### Generating Worksheets
-
-1. **Generate a new worksheet**:
+1. **Interactive Mode**:
    ```bash
-   python generate_math_problems.py
+   python custom_worksheet_creator.py
    ```
-   This will create a JSON file in the `data` directory with 10 math problems.
+   - Follow the prompts to select topics and difficulty
+   - Worksheets are saved in the `worksheets` directory
 
-2. **View the generated worksheet**:
+2. **Command Line Options**:
    ```bash
-   python view_worksheet.py
-   ```
-   This will display the most recently generated worksheet in the console.
-
-### Converting to PDF
-
-To convert the JSON worksheet to a PDF with separate question and answer sheets:
-
-1. **Install the required dependencies**:
-   ```bash
-   pip install reportlab
+   python custom_worksheet_creator.py --topic integers --count 5 --difficulty medium
    ```
 
-2. **Run the PDF generator**:
-   ```bash
-   python generate_pdf.py
-   ```
-   This will create two PDF files in the `worksheets` directory:
-   - `worksheet_questions.pdf` - Contains just the problems
-   - `worksheet_answers.pdf` - Contains the problems with answers
+## 📁 Key Files
 
-## 📁 Project Structure
-
-```
-grade7-math-worksheets/
-├── data/                   # Directory for JSON worksheets
-├── worksheets/             # Directory for PDF worksheets
-├── grade7_problems.py      # Core problem generation logic
-├── generate_math_problems.py  # Script to generate new worksheets
-├── view_worksheet.py       # View worksheet in console
-├── generate_pdf.py         # Convert JSON to PDF
-└── requirements.txt        # Python dependencies
+- `custom_worksheet_creator.py` - Main application
+- `local_llm_integration.py` - LLM communication
+- `problem_importer.py` - Problem management
+- `generate_pdf.py` - PDF generation
+- `data/` - Problem storage
+- `worksheets/` - Generated PDFs
 ```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please submit a PR or open an issue.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 ```
 
 ## 🤝 Contributing

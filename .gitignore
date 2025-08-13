@@ -47,3 +47,6 @@ data/problems/*.json
 # Local development
 .DS_Store
 debug/
+backup/
+archive_20250813_230605/
+
