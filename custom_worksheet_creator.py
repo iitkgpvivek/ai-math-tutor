@@ -210,13 +210,15 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                         === TASK ===
                         Create a new variation that:
                         1. Has the EXACT SAME mathematical structure as the original
-                        2. Only changes the numbers and context (e.g., different objects, measurements)
-                        3. Results in a whole number or simple fraction answer
-                        4. Is culturally appropriate for Indian students
-                        5. Uses Indian currency (₹) and metric units
+                        2. The variation looks similar to the original problem
+                        3. May change the numbers and context (e.g., different objects, measurements)
+                        4. Results in a whole number or simple fraction answer
+                        5. Is culturally appropriate for Indian students
+                        6. Uses Indian currency (₹) and metric units
                         
                         === REQUIREMENTS ===
                         - The problem MUST have the SAME mathematical structure as the original
+                        - The variation should look similar to the original problem
                         - You MUST first analyze and show the mathematical structure of the original
                         - Only change the numbers and context, keeping the equation structure identical
                         - The solution should require the SAME number of steps as the original
@@ -261,6 +263,7 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                         === TASK ===
                         Create a new variation of this problem that:
                         - Has the same core mathematical concept and structure
+                        - The variation should look similar to the original problem
                         - Uses different numbers and context
                         - Is appropriate for {difficulty} difficulty
                         - Is clear, complete, and ends with a question mark
