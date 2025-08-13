@@ -1,0 +1,4 @@
+{
+  "variation": "In Mumbai, the price of mangoes was ₹50 per kg on Monday. On Tuesday, it increased by ₹15 per kg. What was the price of mangoes per kg on this day? On Wednesday, the price decreased by ₹10 per kg. What was the price of mangoes per kg on that day?",
+  "explanation": "Changed the context to Indian currency and a commodity (mangoes), adjusted prices for intermediate difficulty, and added another change in price for Wednesday."
+}

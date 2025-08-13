@@ -1,0 +1,4 @@
+{
+  "variation": "Ajay bought 10 kg of apples for ₹250. How many rupees did he pay per kilogram?",
+  "explanation": "Changed the quantity and cost while maintaining the calculation concept, used Indian currency and metric units."
+}

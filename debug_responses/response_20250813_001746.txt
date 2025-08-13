@@ -1,0 +1,22 @@
+=== ORIGINAL RESPONSE ===
+{
+ "problem": {
+   "type": "addition",
+   "num1": 5,
+   "num2": 7,
+   "answer": 12,
+   "explanation": "To solve this addition problem, you add the two numbers together: 5 + 7 = 12."
+ },
+ "problem_variation": {
+   "type": "multiplication",
+   "num1": 3,
+   "num2": 4,
+   "answer": 12,
+   "explanation": "To solve this multiplication problem, you multiply the two numbers together: 3 * 4 = 12."
+ }
+}
+
+=== CONTEXT ===
+{
+  "test_problem": "A train travels 300 km in 4 hours. What is its speed in km/h?"
+}

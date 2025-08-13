@@ -6,12 +6,13 @@ This script provides an interactive command-line interface to create custom math
 with specific topics and number of questions for each topic.
 """
 
-import os
-import sys
 import json
+import os
 import random
-from typing import Dict, List, Optional
+import sys
+import time
 from datetime import datetime
+from typing import Dict, List, Optional
 
 # Import the worksheet generator functions
 from create_custom_worksheet import (
@@ -148,164 +149,350 @@ def get_yes_no(prompt: str) -> bool:
             return False
         print("Please enter 'y' or 'n'.")
 
+import re
+
 def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medium') -> list:
-    """Generate problems using the LLM importer.
+    """Generate fresh math problems aligned with CBSE curriculum for Indian students.
+    
+    Problems are designed to match the NCERT syllabus and style for Grade 7 students.
+    Uses problem templates from data/problems as seeds for generating similar problems.
     
     Args:
-        problem_type: Type of problem to generate
+        problem_type: Type of problem to generate (e.g., 'integer')
         count: Number of problems to generate
-        difficulty: Difficulty level
+        difficulty: Difficulty level ('easy', 'medium', 'hard')
         
     Returns:
-        List of problem dictionaries
+        List of problem dictionaries with 'problem' and 'solution' keys
     """
     try:
-        importer = ProblemImporter()
+        from local_llm_integration import LocalLLMGenerator
+        from problem_template_manager import ProblemTemplateManager
+        import json
+        
+        # Initialize the LLM generator and template manager
+        llm = LocalLLMGenerator()
+        template_manager = ProblemTemplateManager()
+        
+        # Ensure the server is running
+        if not llm.ensure_server():
+            print("❌ Could not connect to LLM server. Please make sure Ollama is running.")
+            return []
+        
         problems = []
+        used_problem_texts = set()  # To avoid duplicates
         
         # Map problem types to categories
         category_map = {
             'integer': 'Number System',
             'fraction': 'Number System',
             'decimal': 'Number System',
-            'simple_equation': 'Algebra'
+            'simple_equations': 'Algebra'
         }
         
-        # Base problems for different types - expanded with clear, complete questions
-        base_problems = {
-            'integer': [
-                "A train travels 300 km in 5 hours. What is its average speed in kilometers per hour?",
-                "The sum of two consecutive numbers is 25. What are the two numbers? Show your work.",
-                "A shopkeeper sold 45 books on Monday and 37 on Tuesday. How many more books were sold on Monday than on Tuesday?",
-                "You have $100. You spend $37 on groceries and $28 on gas. How much money do you have left after these purchases?",
-                "A football team gained 7 yards, then lost 12 yards, and finally gained 8 yards. What is their net yardage after these three plays?",
-                "The temperature was -5°C at night. During the day, it rose by 12°C. What was the daytime temperature in degrees Celsius?",
-                "A submarine is at 250 meters below sea level. If it rises 180 meters, what is its new depth below sea level?",
-                "A pizza is cut into 8 equal slices. If 5 people share the pizza equally, how many slices does each person get, and how many slices remain?"
-            ],
-            'fraction': [
-                "If 3/4 of a number is 15, what is the original number? Show your calculations.",
-                "A recipe calls for 2/3 cup of sugar. If you want to make half the recipe, how much sugar should you use? Express your answer as a fraction.",
-                "John has 5/6 of a pizza left. He eats 1/3 of the remaining pizza. What fraction of the whole pizza did he eat?",
-                "In a class of 24 students, 5/8 are girls. How many girls are in the class? How many boys are there?",
-                "A water tank is 3/4 full. After using 1/3 of the water in the tank, what fraction of the tank's capacity is now filled with water?",
-                "If 2/5 of a number is 14, what is 3/4 of that number? Show your step-by-step solution.",
-                "A recipe requires 3/4 cup of flour. If you want to make 2 1/2 times the recipe, how many cups of flour will you need?",
-                "A rope is 12 meters long. How many pieces, each measuring 3/4 meter, can be cut from the rope? Will there be any rope left over?"
-            ],
-            'decimal': [
-                "A rectangle has a length of 12.5 cm and a width of 8 cm. Calculate its area in square centimeters.",
-                "A shirt is on sale for $45 after a 20% discount. What was the original price of the shirt before the discount?",
-                "A car travels 245.6 km on 18.5 liters of petrol. Calculate the car's fuel efficiency in kilometers per liter (round to one decimal place).",
-                "If 2.5 kg of apples cost $7.50, what is the cost per kilogram of apples?",
-                "A student's scores on three tests are 85.5, 92.0, and 78.5. What is the student's average test score? Round your answer to one decimal place.",
-                "A water tank contains 250.75 liters of water. If 37.5 liters are used, how many liters of water remain in the tank?",
-                "A runner completes a 400-meter race in 45.8 seconds. Calculate the runner's average speed in meters per second (round to two decimal places).",
-                "A recipe calls for 0.25 kg of flour, 0.15 kg of sugar, and 0.05 kg of cocoa powder. What is the total weight of these dry ingredients in kilograms?"
-            ],
-            'simple_equation': [
-                "Solve for x: 2x + 5 = 15. Show each step of your solution.",
-                "The sum of three consecutive even numbers is 54. Find all three numbers.",
-                "A number increased by 7 equals 15. Set up and solve an equation to find the number.",
-                "If 3 times a number minus 5 equals 16, what is the number? Show your work.",
-                "The sum of two numbers is 45. If one number is twice the other, find both numbers.",
-                "A rectangle's length is 5 meters more than its width. If the perimeter is 38 meters, find the length and width of the rectangle.",
-                "The sum of three consecutive odd numbers is 57. Find all three numbers.",
-                "A number divided by 4 plus 7 equals 15. Find the number by setting up and solving an equation."
-            ]
-        }
+        # Get the appropriate category for the problem type
+        category = category_map.get(problem_type, 'General')
         
-        base_problems_list = base_problems.get(problem_type, [
-            f"If x = 5, what is 2x + 3?"  # Fallback problem
-        ])
-        
-        # Track seen problems to avoid duplicates
-        seen_problems = set()
-        all_variations = []
-        
-        # First, try to generate variations from base problems
-        max_attempts_per_problem = 2  # Maximum number of attempts per base problem
-        max_total_attempts = count * 3  # Overall maximum attempts to prevent infinite loops
-        total_attempts = 0
-        
-        # Shuffle the base problems to get more variety
-        random.shuffle(base_problems_list)
-        
-        # Try to generate variations until we have enough or run out of attempts
-        while len(all_variations) < count and total_attempts < max_total_attempts:
-            # Cycle through base problems
-            for base_problem in base_problems_list:
-                if len(all_variations) >= count:
-                    break
+        for _ in range(count):
+            try:
+                # Try to get a template matching the requested type and difficulty
+                template = template_manager.get_random_template(
+                    problem_type=problem_type,
+                    difficulty=difficulty,
+                    avoid_used=True
+                )
+                
+                if template:
+                    # Use the template to generate a similar problem
+                    prompt = f"""You are an expert math teacher creating variations of problems for 7th grade Indian students following the CBSE curriculum.
                     
-                attempts = 0
-                while attempts < max_attempts_per_problem and len(all_variations) < count:
+                    === ORIGINAL PROBLEM ===
+                    {template['original_question']}
+                    
+                    === TASK ===
+                    Create a new variation of this problem that:
+                    - Has the same core mathematical concept and structure
+                    - Uses different numbers and context
+                    - Is appropriate for {difficulty} difficulty
+                    - Is clear, complete, and ends with a question mark
+                    - Is culturally appropriate for Indian students
+                    - Uses Indian currency (₹) and metric units
+                    
+                    === REQUIRED JSON FORMAT ===
+                    You MUST respond with a valid JSON object containing exactly these two fields:
+                    - "variation": The new problem text (ending with a question mark)
+                    - "explanation": A brief explanation of the changes made
+                    
+                    Example:
+                    {{
+                      "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
+                      "explanation": "Changed the distance and time values while maintaining the speed calculation concept."
+                    }}
+                    
+                    RULES:
+                    1. The response MUST be valid JSON
+                    2. The variation MUST end with a question mark (?)
+                    3. The variation MUST be a complete, self-contained question
+                    4. The explanation should be brief and focus on the mathematical changes
+                    
+                    Your response (ONLY the JSON object, no other text):
+                    """
+                else:
+                    # Fallback to generic prompt if no template found
+                    prompt = f"""
+                    You are an expert math teacher creating problems for 7th grade Indian students following the CBSE curriculum.
+                    
+                    === TASK ===
+                    Generate EXACTLY ONE complete math problem with a clear question and solution.
+                    
+                    === REQUIREMENTS ===
+                    - Problem type: {problem_type}
+                    - Difficulty: {difficulty}
+                    - Must be a complete, self-contained question
+                    - Must end with a clear, specific question mark (?)
+                    - Must include all necessary information to solve
+                    - Must be culturally appropriate for Indian students
+                    - Must use Indian currency (₹) and metric units
+                    
+                    === REQUIRED JSON FORMAT ===
+                    You MUST respond with a valid JSON object containing exactly these two fields:
+                    - "variation": The new problem text (ending with a question mark)
+                    - "explanation": A brief explanation of the problem's concept
+                    
+                    Example:
+                    {{
+                      "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
+                      "explanation": "This problem involves calculating speed using the formula speed = distance/time."
+                    }}
+                    
+                    RULES:
+                    1. The response MUST be valid JSON
+                    2. The variation MUST end with a question mark (?)
+                    3. The variation MUST be a complete, self-contained question
+                    4. The explanation should briefly describe the mathematical concept
+                    
+                    Your response (ONLY the JSON object, no other text):
+                    """
+                
+                # Generate the problem using the LLM
+                response = llm._generate_with_llm(prompt, temperature=0.7)
+                
+                try:
+                    # Clean up the response
+                    response = response.strip()
+                    
+                    # Debug: Print the raw response for troubleshooting
+                    debug_file = os.path.join('debug', f'llm_response_{int(time.time())}.txt')
+                    os.makedirs('debug', exist_ok=True)
+                    with open(debug_file, 'w') as f:
+                        f.write(response)
+                    
                     try:
-                        # Generate variations for this base problem
-                        variations = importer.generate_variations(
-                            problem_text=base_problem,
-                            problem_type=problem_type.capitalize(),
-                            num_variations=1  # Generate one at a time for better control
-                        )
+                        # Debug: Log the raw response for inspection
+                        with open(debug_file + '.raw', 'wb') as f:
+                            f.write(response.encode('utf-8', 'replace'))
                         
-                        if variations and isinstance(variations, list):
-                            for variation in variations:
-                                if 'text' in variation and variation['text'].strip():
-                                    # Clean up the question
-                                    question = variation['text'].strip()
-                                    if not question.endswith('?'):
-                                        question = f"{question}?"
-                                    
-                                    # Check for uniqueness
-                                    if question not in seen_problems:
-                                        seen_problems.add(question)
-                                        
-                                        # Add to all variations
-                                        all_variations.append({
-                                            'question': question,
-                                            'answer': variation.get('explanation', 'No solution provided'),
-                                            'type': problem_type.capitalize(),
-                                            'difficulty': difficulty,
-                                            'category': category_map.get(problem_type, 'General')
-                                        })
-                                        break  # Move to next base problem after one successful variation
+                        # Try to parse as JSON with strict encoding handling
+                        import json
+                        response_data = json.loads(response)
                         
+                        if not isinstance(response_data, dict):
+                            raise ValueError(f"Expected a JSON object, got {type(response_data).__name__}")
+                            
+                        if 'variation' not in response_data or 'explanation' not in response_data:
+                            # If we still can't parse, try to extract just a question
+                            questions = re.findall(r'([^.!?]+\?)', response)
+                            if questions:
+                                problem_text = questions[0].strip()
+                                solution_text = "Solution: " + response.replace(problem_text, '').strip()
+                            else:
+                                raise ValueError(f"Could not parse LLM response. Response: {response[:200]}...")
+                        else:
+                            problem_text = response_data['variation'].strip()
+                            solution_text = f"Explanation: {response_data['explanation']}"
+                        
+                        # Create the problem dictionary
+                        problem = {
+                            'problem': problem_text,
+                            'solution': solution_text,
+                            'type': problem_type,
+                            'difficulty': difficulty,
+                            'category': category,
+                            'source': 'ai_generated',
+                            'template_used': template['id'] if template else None
+                        }
+                        
+                        # Check for duplicates
+                        if problem_text not in used_problem_texts:
+                            problems.append(problem)
+                            used_problem_texts.add(problem_text)
+                            print(f"✅ Generated problem {len(problems)}/{count}")
+                        else:
+                            print("⚠️  Duplicate problem detected, generating another...")
+                            continue
+                    except json.JSONDecodeError as e:
+                        # Fallback to simple parsing if JSON parsing fails
+                        print("⚠️  Could not parse LLM response as JSON, using fallback parsing")
+                        problem_text = response.split('\n')[0].strip()
+                        if not problem_text.endswith('?'):
+                            problem_text = problem_text.rstrip('.') + '?'
+                            
+                        problem = {
+                            'problem': problem_text,
+                            'solution': 'Solution steps not provided by AI.',
+                            'type': problem_type,
+                            'difficulty': difficulty,
+                            'category': category,
+                            'source': 'ai_generated_fallback',
+                            'template_used': template['id'] if template else None
+                        }
+                        
+                        if problem_text not in used_problem_texts:
+                            problems.append(problem)
+                            used_problem_texts.add(problem_text)
+                
+                except (json.JSONDecodeError, KeyError, IndexError) as e:
+                    print(f"⚠️  Error parsing LLM response: {e}")
+                    print("Response:", response)
+                    continue
+                    
+            except Exception as e:
+                print(f"⚠️  Error generating problem: {e}")
+                continue
+        
+        # If we couldn't generate enough problems, try with a simpler prompt
+        remaining = count - len(problems)
+        if remaining > 0 and remaining < count:  # Only try if we made some progress
+            print(f"⚠️  Could only generate {len(problems)}/{count} problems. Trying with simpler prompts...")
+            try:
+                # Try with simpler prompts for remaining problems
+                simple_prompt = f"""
+                Create a {difficulty} level math problem about {problem_type} for 7th grade students.
+                Make it clear and end with a question mark.
+                
+                Problem: """
+                
+                for _ in range(remaining):
+                    try:
+                        response = llm._generate_with_llm(simple_prompt, temperature=0.8)
+                        problem_text = response.strip()
+                        
+                        if not problem_text.endswith('?'):
+                            problem_text = problem_text.rstrip('.') + '?'
+                            
+                        if problem_text not in used_problem_texts:
+                            problem = {
+                                'problem': problem_text,
+                                'solution': 'Solution steps not provided by AI.',
+                                'type': problem_type,
+                                'difficulty': difficulty,
+                                'category': category,
+                                'source': 'ai_generated_fallback_simple'
+                            }
+                            problems.append(problem)
+                            used_problem_texts.add(problem_text)
+                            print(f"✅ Generated fallback problem {len(problems)}/{count}")
+                            
                     except Exception as e:
-                        print(f"Error generating variation: {str(e)}")
-                    
-                    attempts += 1
-                    total_attempts += 1
+                        print(f"⚠️  Error with fallback generation: {e}")
+                        continue
+                        
+            except Exception as e:
+                print(f"⚠️  Error in fallback generation: {e}")
         
-        # If we still don't have enough unique variations, use some base problems directly
-        if len(all_variations) < count:
-            for problem in base_problems_list:
-                if len(all_variations) >= count:
-                    break
-                    
-                if problem not in seen_problems:
-                    seen_problems.add(problem)
-                    all_variations.append({
-                        'question': problem,
-                        'answer': 'Solution not available',
-                        'type': problem_type.capitalize(),
-                        'difficulty': difficulty,
-                        'category': category_map.get(problem_type, 'General')
-                    })
+        # Final check if we still don't have enough problems
+        if len(problems) < count:
+            print(f"⚠️  Warning: Only generated {len(problems)} out of requested {count} problems.")
         
-        # Ensure we have exactly the requested number of problems
-        return all_variations[:count]
+        return problems
         
     except Exception as e:
-        print(f"Error in generate_llm_problems: {str(e)}")
+        print(f"❌ Error in problem generation: {e}")
         import traceback
         traceback.print_exc()
-        # Return empty list to indicate failure
-        return []
+        # Extract problem text
+        problem_text = ''
+        if 'PROBLEM' in problem_data:
+            problem_text = problem_data.get('PROBLEM', '').strip()
+        elif 'problem' in problem_data:
+            problem_text = problem_data.get('problem', '').strip()
         
+        # Extract question if separate
+        question = problem_data.get('QUESTION', problem_data.get('question', '')).strip()
+        if question and question not in problem_text:
+            problem_text = f"{problem_text} {question}"
+        
+        # Extract solution
+        solution = ''
+        if 'SOLUTION' in problem_data:
+            solution = problem_data.get('SOLUTION', '')
+        elif 'solution' in problem_data:
+            solution = problem_data.get('solution', '')
+        
+        # Normalize solution format
+        if isinstance(solution, (list, tuple)):
+            solution = '\n'.join(str(s).strip() for s in solution if str(s).strip())
+        elif isinstance(solution, dict):
+            solution = '\n'.join(f"{k}: {v}" for k, v in solution.items() if str(v).strip())
+        else:
+            solution = str(solution).strip()
+            
+        # If we couldn't extract a valid problem and solution, use fallback
+        if not problem_text or not solution:
+            problem_text = "Please provide a complete question."
+            solution = "No solution provided."
+        
+        # Clean up the problem text
+        if problem_text:
+            # Remove any JSON-like formatting and extra whitespace
+            problem_text = re.sub(r'^["\']|["\']$', '', problem_text.strip())
+            problem_text = ' '.join(line.strip() for line in problem_text.split('\n') if line.strip())
+            
+            # Ensure the problem is a complete question
+            if problem_text:
+                # Remove any leading numbers or bullets
+                problem_text = re.sub(r'^[\d\s\-\.\)\(]*', '', problem_text).strip()
+                
+                # Capitalize first letter
+                problem_text = problem_text[0].upper() + problem_text[1:]
+                
+                # Ensure it ends with a question mark
+                if not problem_text.endswith('?'):
+                    problem_text = problem_text.rstrip('.') + '?'
+        
+        # Clean up the solution
+        if solution:
+            if isinstance(solution, str):
+                # Remove any JSON-like formatting and extra whitespace
+                solution = re.sub(r'^["\']|["\']$', '', solution.strip())
+                solution = '\n'.join(line.strip() for line in solution.split('\n') if line.strip())
+            
+            # Ensure solution has a final answer if it's multi-line
+            if '\n' in solution and not re.search(r'(?i)final(?:\s+answer)?\s*[:\-]?\s*', solution):
+                solution = f"{solution}\n\nFinal answer: See steps above."
+        
+        if problem_text and solution:
+            problems.append({
+                'problem': problem_text,
+                'solution': solution,
+                'type': problem_type.capitalize(),
+                'difficulty': difficulty,
+                'category': category_map.get(problem_type, 'General')
+            })
+            print(f"✓ Generated problem {len(problems)}/{count}")
+        else:
+            print("❌ Empty problem or solution")
+            print("Problem:", problem_text)
+            print("Solution:", solution)
+            print("Raw response:", response)
+    
     except Exception as e:
-        print(f"Critical error in generate_llm_problems: {str(e)}")
-        # Return empty list to avoid crashing the calling function
-        return []
+        print(f"❌ Error in problem generation: {e}")
+        print("Raw response:", response)
+        import traceback
+        traceback.print_exc()
+        return problems
+        
 
 def import_problem():
     """Import a problem from a textbook."""
@@ -559,25 +746,68 @@ def create_ai_worksheet():
         save_worksheet(worksheet, topic_id)
 
 def generate_solution(problem: dict) -> str:
-    """Generate a solution for a given problem."""
+    """Generate a solution for a given problem.
+    
+    Args:
+        problem: Dictionary containing problem details with keys:
+            - problem: The problem text
+            - type: The problem type (e.g., 'integer', 'fraction')
+            - difficulty: The difficulty level ('easy', 'medium', 'hard')
+            
+    Returns:
+        str: A step-by-step solution to the problem
+    """
     try:
         # If problem already has an answer, use it
         if problem.get('answer'):
             return problem['answer']
             
+        problem_text = problem.get('problem', '')
+        problem_type = problem.get('type', '').lower()
+        difficulty = problem.get('difficulty', 'medium')
+        
         # Generate solution based on problem type
-        if problem.get('type') == 'integer':
-            return "[Sample solution for integer problem]"
-        elif problem.get('type') == 'fraction':
-            return "[Sample solution for fraction problem]"
-        elif problem.get('type') == 'decimal':
-            return "[Sample solution for decimal problem]"
-        else:  # simple_equation or other
-            return "[Sample solution]"
+        if 'integer' in problem_type:
+            return (
+                "Step 1: Analyze the problem to identify the required calculations\n"
+                "Step 2: Break down the problem into smaller, manageable parts\n"
+                "Step 3: Perform the necessary integer operations\n"
+                "Step 4: Verify the solution by checking the calculations\n"
+                "Note: The exact solution steps would depend on the specific problem details."
+            )
+        elif 'fraction' in problem_type:
+            return (
+                "Step 1: Identify the fractions involved in the problem\n"
+                "Step 2: Find a common denominator if needed\n"
+                "Step 3: Perform the required operations (addition, subtraction, etc.)\n"
+                "Step 4: Simplify the resulting fraction to its lowest terms\n"
+                "Note: The exact solution steps would depend on the specific problem details."
+            )
+        elif 'decimal' in problem_type:
+            return (
+                "Step 1: Align the decimal points for all numbers\n"
+                "Step 2: Perform the required operations\n"
+                "Step 3: Ensure proper placement of the decimal point in the final answer\n"
+                "Note: The exact solution steps would depend on the specific problem details."
+            )
+        elif 'percentage' in problem_type:
+            return (
+                "Step 1: Identify the base amount and the percentage\n"
+                "Step 2: Convert percentage to decimal form (divide by 100)\n"
+                "Step 3: Multiply the base amount by the decimal percentage\n"
+                "Note: The exact solution steps would depend on the specific problem details."
+            )
+        else:
+            return (
+                "Step 1: Read the problem carefully and identify what is being asked\n"
+                "Step 2: List out the given information\n"
+                "Step 3: Determine the appropriate mathematical operations needed\n"
+                "Step 4: Perform the calculations step by step\n"
+                "Step 5: Verify your answer by checking if it makes sense in the given context"
+            )
     except Exception as e:
         print(f"Warning: Could not generate solution: {e}")
         return "[Solution not available]"
-
 def save_worksheet(worksheet_data: dict, topic_id: str) -> tuple:
     """Save the worksheet and its solutions to files.
     

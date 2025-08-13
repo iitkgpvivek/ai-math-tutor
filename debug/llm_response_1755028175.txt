@@ -1,0 +1,4 @@
+{
+  "variation": "You are at a height of 120 meters above ground level as you begin a hike. During the hike, your height changes by the following meters: 190 m, -85 m, 140 m, -105 m, 270 m, -365 m and 125 m. What is your height above ground level at the end of the hike?",
+  "explanation": "Changed the elevation values, unit from meters to meters (for consistency), context from motor ride to a hike, and used Indian currency and metric units."
+}

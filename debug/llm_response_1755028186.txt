@@ -1,0 +1,4 @@
+{
+  "variation": "In an exam containing 20 questions, 5 marks are given for every correct answer and (-1) marks are given for every incorrect answer. Raghav attempts all questions but only 12 of his answers are correct. What is his total score (in ₹)?",
+  "explanation": "Changed the number of questions, marks per correct/incorrect answer, student's name, and total questions attempted while maintaining the same mathematical concept and structure. Also used Indian currency for a more culturally appropriate context."
+}

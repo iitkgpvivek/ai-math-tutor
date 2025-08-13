@@ -1,0 +1,4 @@
+{
+  "variation": "A shopkeeper sells 1500 apples for ₹3000. What is the price of one apple in rupees?",
+  "explanation": "Changed the quantity and cost values while maintaining the price calculation concept. Used a common Indian context."
+}

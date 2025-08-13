@@ -1,0 +1,28 @@
+=== ORIGINAL RESPONSE ===
+{
+ "math_problem": {
+   "problem": "Solve for x in the following quadratic equation: ax^2 + bx + c = 0",
+   "explanation": {
+     "step_1": "Rewrite the equation into the standard form of a quadratic equation: x^2 + (b/a)x + (c/a) = 0",
+     "step_2": "Use the quadratic formula to find the solutions for x:",
+     "quadratic_formula": "x = [-b ± sqrt(b² - 4ac)] / (2a)",
+     "step_3": "Plug in the values of a, b, and c from the original equation into the quadratic formula.",
+     "step_4": "Calculate the discriminant (b² - 4ac)",
+     "step_5": "Determine the number and type of solutions based on the value of the discriminant:",
+      "- If the discriminant is positive, there are two distinct real roots. Use the quadratic formula to find both solutions for x.": {
+         "example": "If a = 1, b = -5, c = 6, then the solutions would be x₁ = (5 + sqrt(29))/2 and x₂ = (5 - sqrt(29))/2"
+       },
+      "- If the discriminant is zero, there is one real and repeated root. Use the quadratic formula to find the single solution for x.": {
+         "example": "If a = 1, b = -4, c = 1, then the solution would be x = -2"
+       },
+      "- If the discriminant is negative, there are no real solutions. The roots are complex and imaginary.": {
+         "example": "If a = 1, b = -5, c = 9, then the equation has no real solutions"
+       }
+    }
+  }
+}
+
+=== CONTEXT ===
+{
+  "test_problem": "A train travels 300 km in 4 hours. What is its speed in km/h?"
+}

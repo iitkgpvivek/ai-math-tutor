@@ -1,0 +1,21 @@
+=== ORIGINAL RESPONSE ===
+{
+  "problem": {
+    "question": "Solve for x in the following linear equation: 3x + 5 = 14",
+    "explanation": {
+      "steps": [
+        "First, subtract 5 from both sides of the equation to isolate the term with x:",
+        "3x + 5 - 5 = 14 - 5",
+        "3x = 9",
+        "Finally, divide both sides by 3 to solve for x:",
+        "x = 9 / 3",
+        "x = 3"
+      ]
+    }
+  }
+}
+
+=== CONTEXT ===
+{
+  "test_problem": "A train travels 300 km in 4 hours. What is its speed in km/h?"
+}

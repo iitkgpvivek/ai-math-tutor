@@ -1,0 +1,4 @@
+{
+  "variation": "In a local cricket tournament, 20 overs are bowled by each team. If every correct ball results in 4 runs and every wide or no-ball results in (-1) run, how many runs will a team score if they play perfectly? However, one of their opponents plays poorly and scores only 8 runs.",
+  "explanation": "Changed the context to cricket, used overs instead of questions, converted marks to runs, and adjusted the scoring system. Indian cricket is popular among students."
+}

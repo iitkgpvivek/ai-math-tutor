@@ -1,0 +1,4 @@
+{
+  "variation": "During a boat ride in the Ganges, the water level changes by the following meters: 210 cm, -145 cm, 87 cm, -102 cm, 350 cm, -600 cm and 120 cm. What is the water level relative to the sea level at the end of the ride in centimeters?",
+  "explanation": "Changed the context to a boat ride in an Indian river (Ganges), used different numbers for elevation changes, maintained the core mathematical concept and structure, and kept the units consistent with Indian measurements."
+}

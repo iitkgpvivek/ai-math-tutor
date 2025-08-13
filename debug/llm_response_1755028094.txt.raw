@@ -1,0 +1,4 @@
+{
+  "variation": "In an exam consisting of 10 questions, 2 marks are awarded for every correct answer, (-0.5) marks are deducted for every incorrect answer, and 0 for each question not attempted. A student scores 4 correct and 6 incorrect answers. What is his total score in terms of rupees (₹)?",
+  "explanation": "Changed the scoring system to be more appropriate for an Indian context, adjusted the number of questions and the number of correct/incorrect answers, and converted the marks to a currency format."
+}

@@ -1,0 +1,6 @@
+{
+  "PROBLEM":
+  "A certain amount of water is being heated at a rate of 5 degrees Celsius every 10 minutes. Initially, the temperature of the water is 20 degrees Celsius. How many degrees will the temperature rise in 60 minutes?",
+
+  "SOLUTION":
+  1.10

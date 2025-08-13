@@ -5,7 +5,11 @@ Test script to generate variations for a random problem from the problems direct
 import os
 import json
 import random
+import time
 from problem_importer import ProblemImporter
+
+# Seed the random number generator with current time for better randomness
+random.seed(time.time())
 
 def load_random_problem():
     """Load a random problem from the problems directory."""
@@ -16,8 +20,9 @@ def load_random_problem():
         print("No problem files found in the problems directory.")
         return None
     
-    # Select a random problem file
-    selected_file = random.choice(problem_files)
+    # Shuffle the problem files and select the first one
+    random.shuffle(problem_files)
+    selected_file = problem_files[0]
     file_path = os.path.join(problems_dir, selected_file)
     
     with open(file_path, 'r') as f:

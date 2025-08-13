@@ -260,8 +260,35 @@ class ProblemImporter:
             }
         }
         
-        # Save the problem
-        return self._save_problem(problem_data)
+        # Save the initial problem
+        problem_data = self._save_problem(problem_data)
+        
+        # Generate variations if LLM is available
+        if self.use_llm:
+            try:
+                print("\nGenerating variations...")
+                variations = self.generate_variations(
+                    problem_text=problem_text,
+                    problem_type=problem_type,
+                    num_variations=3  # Generate 3 variations by default
+                )
+                
+                if variations:
+                    problem_data['variations'] = variations
+                    problem_data['metadata']['variation_count'] = len(variations)
+                    problem_data['metadata']['has_variations'] = True
+                    problem_data['metadata']['last_updated'] = datetime.now().isoformat()
+                    
+                    # Save the problem with variations
+                    problem_data = self._save_problem(problem_data)
+                    print(f"✅ Generated {len(variations)} variations for the problem")
+                
+            except Exception as e:
+                print(f"⚠️ Error generating variations: {str(e)}")
+                import traceback
+                traceback.print_exc()
+        
+        return problem_data
     
     def _save_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
         """Save a problem to the database."""

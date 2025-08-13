@@ -6,6 +6,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
 
 # Ensure the worksheets directory exists
 os.makedirs('worksheets', exist_ok=True)
@@ -57,6 +60,20 @@ def create_pdf(worksheet, include_answers=False, output_path=None):
         topMargin=72, bottomMargin=72
     )
     
+    # Register DejaVuSans font if available for better Unicode support
+    try:
+        # Try to use DejaVuSans if available (common on Linux)
+        pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+        default_font = 'DejaVuSans'
+    except:
+        try:
+            # Try to use Arial Unicode MS if on Windows
+            pdfmetrics.registerFont(TTFont('ArialUnicodeMS', 'ARIALUNI.TTF'))
+            default_font = 'ArialUnicodeMS'
+        except:
+            # Fall back to default font
+            default_font = 'Helvetica'
+    
     # Define styles
     styles = getSampleStyleSheet()
     
@@ -74,6 +91,7 @@ def create_pdf(worksheet, include_answers=False, output_path=None):
         styles.add(ParagraphStyle(
             name='Problem',
             parent=styles['Normal'],
+            fontName=default_font,
             fontSize=12,
             spaceAfter=12,
             leading=16,
@@ -84,12 +102,19 @@ def create_pdf(worksheet, include_answers=False, output_path=None):
         styles.add(ParagraphStyle(
             name='Answer',
             parent=styles['Italic'],
+            fontName=default_font,
             fontSize=12,
             textColor=colors.darkgreen,
             spaceAfter=20,
             leading=16,
             alignment=TA_LEFT
         ))
+    
+    # Helper function to replace ₹ with Rs. in text
+    def replace_rupee_symbol(text):
+        if not isinstance(text, str):
+            return text
+        return text.replace('₹', 'Rs. ').replace('Rs.  ', 'Rs. ')
     
     # Build the PDF content
     elements = []
@@ -117,13 +142,13 @@ def create_pdf(worksheet, include_answers=False, output_path=None):
     
     # Add problems
     for i, problem in enumerate(worksheet['problems'], 1):
-        # Add problem number and text
-        problem_text = f"<b>{i}.</b> {problem['problem']}"
+        # Add problem number and text (replace ₹ with Rs.)
+        problem_text = f"<b>{i}.</b> {replace_rupee_symbol(problem['problem'])}"
         elements.append(Paragraph(problem_text, styles['Problem']))
         
         # Add answer if requested
         if include_answers:
-            answer_text = f"<b>Answer:</b> {problem['answer']}"
+            answer_text = f"<b>Answer:</b> {replace_rupee_symbol(problem['answer'])}"
             elements.append(Paragraph(answer_text, styles['Answer']))
         
         # Add some space between problems

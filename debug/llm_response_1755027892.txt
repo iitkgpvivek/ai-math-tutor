@@ -1,0 +1,4 @@
+{
+  "variation": "A textile factory produces 2500 pieces of sarees at a cost of Rs. 12 per piece and sells them for Rs. 24 each. In a month, they also produce 3500 pieces of salwar kameez with a selling price of Rs. 40 and a production cost of Rs. 28 per piece. What is their total profit or loss in a month?",
+  "explanation": "Changed the product type to Indian clothing, altered the number of items sold, costs, and selling prices while maintaining the profit/loss calculation concept."
+}

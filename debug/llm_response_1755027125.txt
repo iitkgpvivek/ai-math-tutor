@@ -1,0 +1,4 @@
+{
+  "variation": "Ravi bought 60 apples at ₹15 per kg. If he sold 20 kg of them, how many kilograms of apples does he have left?",
+  "explanation": "Changed the context to purchasing and selling of goods in Indian currency, kept the same mathematical concept (subtraction), and adjusted the numbers for intermediate difficulty."
+}

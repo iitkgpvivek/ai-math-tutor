@@ -1,0 +1,19 @@
+=== ORIGINAL RESPONSE ===
+{
+ "problem": {
+   "type": "multiplication",
+   "num1": 7,
+   "num2": 5,
+   "question": "What is 7 times 5?",
+   "explanation": "To solve this problem, you multiply the two numbers together. In this case, that would be 7 times 5. The result is 35."
+ },
+ "example_solution": {
+   "answer": 35,
+   "work": "Start with 7 and add it to itself 5 times: \n7 + 7 + 7 + 7 + 7 = 35"
+ }
+}
+
+=== CONTEXT ===
+{
+  "test_problem": "A train travels 300 km in 4 hours. What is its speed in km/h?"
+}
