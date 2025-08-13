@@ -204,39 +204,97 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                 
                 if template:
                     # Use the template to generate a similar problem
-                    prompt = f"""You are an expert math teacher creating variations of problems for 7th grade Indian students following the CBSE curriculum.
-                    
-                    === ORIGINAL PROBLEM ===
-                    {template['original_question']}
-                    
-                    === TASK ===
-                    Create a new variation of this problem that:
-                    - Has the same core mathematical concept and structure
-                    - Uses different numbers and context
-                    - Is appropriate for {difficulty} difficulty
-                    - Is clear, complete, and ends with a question mark
-                    - Is culturally appropriate for Indian students
-                    - Uses Indian currency (₹) and metric units
-                    
-                    === REQUIRED JSON FORMAT ===
-                    You MUST respond with a valid JSON object containing exactly these two fields:
-                    - "variation": The new problem text (ending with a question mark)
-                    - "explanation": A brief explanation of the changes made
-                    
-                    Example:
-                    {{
-                      "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
-                      "explanation": "Changed the distance and time values while maintaining the speed calculation concept."
-                    }}
-                    
-                    RULES:
-                    1. The response MUST be valid JSON
-                    2. The variation MUST end with a question mark (?)
-                    3. The variation MUST be a complete, self-contained question
-                    4. The explanation should be brief and focus on the mathematical changes
-                    
-                    Your response (ONLY the JSON object, no other text):
-                    """
+                    # Special handling for simple equations to ensure they require solving an equation
+                    if problem_type.lower() in ['simple_equations', 'equation', 'equations', 'sim']:
+                        prompt = f"""You are an expert math teacher creating equation-solving problems for 7th grade Indian students following the CBSE curriculum.
+                        
+                        === ORIGINAL PROBLEM ===
+                        {template['original_question']}
+                        
+                        === MATHEMATICAL STRUCTURE ===
+                        Analyze and maintain the exact same mathematical structure in your variation.
+                        For example, if the original is "1 subtracted from one-third of a number gives 1", 
+                        the structure is: (x/3) - 1 = 1
+                        
+                        === TASK ===
+                        Create a new variation that:
+                        1. Has the EXACT SAME mathematical structure as the original
+                        2. Only changes the numbers and context (e.g., different objects, measurements)
+                        3. Results in a whole number or simple fraction answer
+                        4. Is culturally appropriate for Indian students
+                        5. Uses Indian currency (₹) and metric units
+                        
+                        === REQUIREMENTS ===
+                        - The problem MUST have the SAME mathematical structure as the original
+                        - You MUST first analyze and show the mathematical structure of the original
+                        - Only change the numbers and context, keeping the equation structure identical
+                        - The solution should require the SAME number of steps as the original
+                        - The answer should be a whole number or simple fraction
+                        - The problem must end with a question mark (?)
+                        
+                        === EXAMPLE 1 ===
+                        Original: "1 subtracted from one-third of a number gives 1, find the number."
+                        Structure: (x/3) - 1 = 1
+                        Good Variation: "2 subtracted from one-fourth of a number gives 3, find the number."
+                        Structure: (x/4) - 2 = 3
+                        
+                        === EXAMPLE 2 ===
+                        Original: "The sum of three consecutive numbers is 36. Find the numbers."
+                        Structure: x + (x+1) + (x+2) = 36
+                        Good Variation: "The sum of three consecutive even numbers is 48. Find the numbers."
+                        Structure: x + (x+2) + (x+4) = 48
+                        
+                        === EXAMPLE 3 ===
+                        Original: "If 5 is added to three times a number, the result is 20."
+                        Structure: 3x + 5 = 20
+                        Good Variation: "If 7 is added to two times a number, the result is 23."
+                        Structure: 2x + 7 = 23
+                        
+                        === REQUIRED JSON FORMAT ===
+                        {{
+                          "original_structure": "The mathematical structure of the original problem (e.g., (x/3) - 1 = 1)",
+                          "variation_structure": "The mathematical structure of your variation (should match the original)",
+                          "variation": "Your new problem text here?",
+                          "explanation": "Explain how the mathematical structure was preserved"
+                        }}
+                        
+                        Your response (ONLY the JSON object, no other text):
+                        """
+                    else:
+                        # Original prompt for other problem types
+                        prompt = f"""You are an expert math teacher creating variations of problems for 7th grade Indian students following the CBSE curriculum.
+                        
+                        === ORIGINAL PROBLEM ===
+                        {template['original_question']}
+                        
+                        === TASK ===
+                        Create a new variation of this problem that:
+                        - Has the same core mathematical concept and structure
+                        - Uses different numbers and context
+                        - Is appropriate for {difficulty} difficulty
+                        - Is clear, complete, and ends with a question mark
+                        - Is culturally appropriate for Indian students
+                        - Uses Indian currency (₹) and metric units
+                        
+                        === REQUIRED JSON FORMAT ===
+                        You MUST respond with a valid JSON object containing exactly these two fields:
+                        - "variation": The new problem text (ending with a question mark)
+                        - "explanation": A brief explanation of the changes made
+                        
+                        Example:
+                        {{
+                          "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
+                          "explanation": "Changed the distance and time values while maintaining the speed calculation concept."
+                        }}
+                        
+                        RULES:
+                        1. The response MUST be valid JSON
+                        2. The variation MUST end with a question mark (?)
+                        3. The variation MUST be a complete, self-contained question
+                        4. The explanation should be brief and focus on the mathematical changes
+                        
+                        Your response (ONLY the JSON object, no other text):
+                        """
                 else:
                     # Fallback to generic prompt if no template found
                     prompt = f"""

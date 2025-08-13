@@ -62,20 +62,52 @@ class ProblemTemplateManager:
         """Get templates matching the specified type and optional difficulty.
         
         Args:
-            problem_type: Type of problem to filter by (e.g., 'integer', 'fraction')
+            problem_type: Type of problem to filter by (e.g., 'integer', 'fraction', 'simple equations')
             difficulty: Optional difficulty level to filter by
             
         Returns:
             List of matching problem templates
         """
-        problem_type = problem_type.lower()
+        # Normalize the problem type for comparison
+        problem_type = problem_type.lower().strip()
+        
+        # Map common aliases to standard type names
+        type_aliases = {
+            'integer': ['integer', 'integers', 'int'],
+            'fraction': ['fraction', 'fractions', 'frac'],
+            'decimal': ['decimal', 'decimals', 'dec'],
+            'simple equations': ['simple equations', 'simple equation', 'equation', 'equations', 'sim']
+        }
+        
+        # Find all matching types for the given problem_type
+        matching_types = []
+        for standard_type, aliases in type_aliases.items():
+            if problem_type in aliases or any(alias in problem_type for alias in aliases):
+                matching_types.append(standard_type)
+        
+        # If no matches, use the original problem_type
+        if not matching_types:
+            matching_types = [problem_type]
         
         filtered = []
         for template in self.templates:
-            # Check if the template's type contains the problem_type (case-insensitive)
-            if problem_type in template['type'].lower():
-                if not difficulty or template['difficulty'].lower() == difficulty.lower():
-                    filtered.append(template)
+            # Normalize the template type for comparison
+            template_type = template['type'].lower().strip()
+            
+            # Check if the template's type matches any of the matching types
+            type_matches = any(
+                mt in template_type or template_type in mt 
+                for mt in matching_types
+            )
+            
+            # Check difficulty if specified
+            difficulty_matches = (
+                not difficulty or 
+                template['difficulty'].lower() == difficulty.lower()
+            )
+            
+            if type_matches and difficulty_matches:
+                filtered.append(template)
         
         return filtered
     

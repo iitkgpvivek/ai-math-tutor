@@ -46,3 +46,4 @@ data/problems/*.json
 
 # Local development
 .DS_Store
+debug/
