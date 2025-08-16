@@ -16,7 +16,7 @@ import os
 import json
 
 from .base_agent import Agent, AgentRole, Message
-from .student_agent import ValidationResult, ProblemReview
+from .student_agent import StudentAgent, ValidationResult, ProblemReview
 
 
 class ProblemVariation:
@@ -61,6 +61,9 @@ class ProblemVariation:
         self.reviews.append(review)
         if review.is_valid:
             self.status = "approved"
+        elif not review.is_valid and not review.validation_result == ValidationResult.TOO_EASY:
+            # Reject immediately if the problem is invalid for reasons other than being too easy
+            self.status = "rejected"
         elif len(self.reviews) >= 3:  # Max iterations
             self.status = "rejected"
         else:
@@ -133,43 +136,48 @@ class TeacherAgent(Agent):
     
     async def generate_problem_variation(
         self,
+        original_question: Optional[str] = None,
         template_id: Optional[str] = None,
         max_retries: int = 3
     ) -> Optional[ProblemVariation]:
         """
-        Generate a variation of a math problem from templates.
-        
+        Generate a variation of a math problem from templates or a direct question.
+
         Args:
-            template_id: Optional ID of a specific template to use
-            max_retries: Maximum number of generation attempts
-            
+            original_question: Optional text of a question to use as a template.
+            template_id: Optional ID of a specific template to use.
+            max_retries: Maximum number of generation attempts.
+
         Returns:
-            A ProblemVariation object if successful, None otherwise
+            A ProblemVariation object if successful, None otherwise.
         """
-        # Get a template (random or specific)
         template = None
-        if template_id:
+        if original_question:
+            # Use the provided question text as a one-off template
+            template = {"original_question": original_question}
+        elif template_id:
+            # Find a template by its ID
             template = next((t for t in self.problem_templates if t.get('id') == template_id), None)
             if not template:
                 self.logger.warning(f"Template {template_id} not found")
                 return None
-        
-        if not template and self.problem_templates:
+        elif self.problem_templates:
+            # Pick a random template if none is specified
             template = random.choice(self.problem_templates)
-        
+
         if not template:
-            self.logger.error("No problem templates available")
+            self.logger.error("No problem templates or original question provided.")
             return None
             
         # Generate a variation using the template
         variation = await self._generate_llm_variation(template)
         
         if not variation:
-            self.logger.error("Failed to generate problem variation")
+            self.logger.error("Failed to generate problem variation from LLM")
             return None
             
         problem = ProblemVariation(
-            original_question=template['problem'],
+            original_question=template['original_question'],
             variation=variation['problem'],
             solution=variation['solution']
         )
@@ -183,48 +191,86 @@ class TeacherAgent(Agent):
         else:
             self.rejected_problems.append(problem)
             
-        return problem if result["is_valid"] else None
+        return problem
         
     async def _generate_llm_variation(self, template: Dict[str, Any]) -> Optional[Dict[str, str]]:
         """Generate a problem variation using LLM based on a template."""
-        prompt = f"""
-        Create a variation of the following math problem while maintaining the same structure and difficulty.
-        
-        Original Problem: {template['problem']}
-        Original Solution: {template['solution']}
-        
-        Requirements:
-        1. Change the numbers and context but keep the same mathematical structure
-        2. Ensure the problem is clear and complete
-        3. Include the solution with step-by-step working
-        4. Make it culturally appropriate for Indian students
-        5. Use metric units and Indian currency (₹)
-        
-        Respond in JSON format with 'problem' and 'solution' fields.
-        """
-        
+        prompt = f"""You are an expert math teacher creating variations of problems for 7th grade Indian students following the CBSE curriculum.
+
+=== ORIGINAL PROBLEM ===
+{template['original_question']}
+
+=== TASK ===
+Your task is to create a new problem that is a variation of the original, preserving its exact algebraic structure.
+
+=== CRITICAL INSTRUCTIONS ===
+1.  **Analyze the Original Problem**: First, write down the exact algebraic equation that represents the original problem. For example, if the problem is "The sum of a number and 5 is 12", the algebraic structure is `x + 5 = 12`.
+2.  **Create a Variation**: Create a new word problem or direct question that resolves to the *exact same algebraic structure*, just with different numbers and a different context. The complexity must be identical.
+3.  **Maintain Stylistic Similarity**: The variation should be stylistically similar to the original. If the original is a direct question, the variation should also be a direct question. If it's a word problem, the new version must also be a word problem.
+4.  **Use Clear and Unambiguous Language**: The problem must be stated clearly. Avoid vague phrases like "X is two times less than Y". Instead, use precise statements like "Y is twice X" (Y = 2X) or "X is half of Y" (X = Y/2).
+5.  **Ensure Integer Solutions**: For problems involving discrete items (like coins, people, or objects), the numbers you choose for the variation MUST result in a whole number (integer) answer. Double-check your calculations.
+6.  **Maintain Numerical Complexity**: If the original problem uses fractions, decimals, or mixed numbers, the variation MUST also use numbers of similar complexity. Do not oversimplify the problem by replacing complex numbers with basic integers.
+
+=== EXAMPLE ===
+- **Original Problem**: "If one-fourth, half and one-third of a number are added to the number itself, then the result is equal to 25. Find the number."
+- **Analysis**: The algebraic structure is `(1/4)x + (1/2)x + (1/3)x + x = 25`.
+- **Good Variation**: "A piece of land is divided into three parts. One-fifth of the land is given to a school, one-fourth is a park, and one-half is for a community hall. The remaining 50 acres are for residential use. What is the total area of the land?"
+- **Explanation**: The variation's structure is `(1/5)x + (1/4)x + (1/2)x + 50 = x`, which has the same structural complexity as the original.
+
+=== REQUIRED JSON FORMAT ===
+You MUST respond with a valid JSON object containing exactly these two fields:
+- "problem": The new problem text (ending with a question mark)
+- "solution": A detailed, step-by-step solution for the new problem.
+
+Example:
+{{
+  "problem": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
+  "solution": "Step 1: Formula for speed is distance/time. Step 2: Speed = 300 km / 5 hours. Step 3: Speed = 60 km/h."
+}}
+
+RULES:
+1. The response MUST be valid JSON.
+2. The 'problem' MUST end with a question mark (?).
+3. The 'problem' MUST be a complete, self-contained question.
+4. The 'solution' MUST be detailed and step-by-step.
+
+Your response (ONLY the JSON object, no other text):
+"""
+
         try:
-            # Use the LLM to generate a variation
-            response = await self.llm.generate(
+            # Use the base class method to generate a response
+            response = await self.generate_with_llm(
                 prompt=prompt,
-                system_prompt="You are an expert math teacher creating problem variations.",
-                response_format={"type": "json_object"},
-                temperature=0.7
+                system_prompt="You are an expert math teacher creating problem variations. Always respond with valid JSON.",
+                temperature=0.7,
+                json_mode=True
             )
-            
-            # Parse the response
-            result = json.loads(response.choices[0].message.content)
-            
+
+            # Get the response content
+            content = response.get("content", "")
+            if not content:
+                self.logger.error("Empty response from LLM")
+                return None
+
+            # Clean and parse the JSON response
+            try:
+                # Remove any markdown code block markers if present
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Failed to parse LLM response as JSON: {e}\nContent: {content}")
+                return None
+
             # Validate the response
             if 'problem' not in result or 'solution' not in result:
-                self.logger.error("Invalid response format from LLM")
+                self.logger.error(f"Invalid response format from LLM: {content}")
                 return None
-                
+
             return {
                 'problem': result['problem'].strip(),
                 'solution': result['solution'].strip()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error generating LLM variation: {e}")
             return None
@@ -239,6 +285,11 @@ class TeacherAgent(Agent):
         """
         Validate a problem with the StudentAgent through iterative review.
         
+        The validation process works as follows:
+        1. First attempt: Generate and validate initial variation with minimal constraints
+        2. If validation fails, use feedback to revise the problem
+        3. Continue for max_iterations or until problem is validated
+        
         Args:
             problem: The problem variation to validate
             max_iterations: Maximum number of review iterations
@@ -246,53 +297,67 @@ class TeacherAgent(Agent):
             total_timeout: Total timeout for the entire review in seconds
             
         Returns:
-            Dict containing validation results
+            Dict containing validation results and final problem state
         """
         start_time = time.time()
         iteration = 0
         
         while iteration < max_iterations and (time.time() - start_time) < total_timeout:
             try:
-                # Validate with student agent
-                result = await asyncio.wait_for(
+                # Get student's review
+                review_result = await asyncio.wait_for(
                     self.student_agent.validate_problem(
-                        problem.variation,
-                        problem.solution,
-                        problem.problem_id
+                        problem_text=problem.variation,
+                        solution=problem.solution,
+                        problem_id=problem.problem_id,
+                        original_question=problem.original_question
                     ),
-                    timeout=min(iteration_timeout, total_timeout - (time.time() - start_time))
+                    timeout=iteration_timeout
                 )
                 
                 # Create review object
                 review = ProblemReview(
                     problem_text=problem.variation,
                     solution=problem.solution,
-                    feedback=result["feedback"],
-                    is_valid=result["is_valid"],
-                    validation_result=ValidationResult(result["validation_result"]),
+                    feedback=review_result.get('feedback', 'No feedback provided'),
+                    is_valid=review_result.get('is_valid', False),
+                    validation_result=ValidationResult(review_result.get('validation_result', 'invalid_format')),
                     iteration=iteration
                 )
-                
                 problem.add_review(review)
                 
-                if result["is_valid"]:
+                # If problem is valid, return success
+                if review_result.get('is_valid', False):
                     return {
                         "is_valid": True,
-                        "feedback": "Problem validated successfully",
+                        "feedback": "Problem validated successfully!",
                         "iterations": iteration + 1,
                         "reviews": [r.to_dict() for r in problem.reviews]
                     }
                 
-                # If we need to revise, update the problem
-                if problem.status == "needs_revision":
-                    revised = await self._revise_problem(problem, result["feedback"])
-                    if not revised:
+                # If we have more iterations left, try to revise the problem
+                if iteration < max_iterations - 1:
+                    revision_successful = await self._revise_problem(
+                        problem=problem,
+                        feedback=review.feedback
+                    )
+                    
+                    if not revision_successful:
                         return {
                             "is_valid": False,
-                            "feedback": "Failed to revise problem",
+                            "feedback": "Failed to revise problem based on feedback",
                             "iterations": iteration + 1,
                             "reviews": [r.to_dict() for r in problem.reviews]
                         }
+                    self.logger.info("Problem revised. Re-validating...")
+                else:
+                    # If status is not 'needs_revision' (e.g., rejected), stop.
+                    return {
+                        "is_valid": False,
+                        "feedback": "Problem rejected after review.",
+                        "iterations": iteration + 1,
+                        "reviews": [r.to_dict() for r in problem.reviews]
+                    }
                 
                 iteration += 1
                 
@@ -318,52 +383,83 @@ class TeacherAgent(Agent):
     ) -> bool:
         """
         Revise a problem based on feedback using LLM.
-        
+
         Args:
             problem: The problem to revise
             feedback: Feedback from the StudentAgent
-            
+
         Returns:
             True if revision was successful, False otherwise
         """
-        prompt = f"""
-        Revise the following math problem based on the feedback.
-        
-        Original Problem: {problem.original_question}
-        Current Variation: {problem.variation}
-        Current Solution: {problem.solution}
-        
-        Feedback:
-        {feedback}
-        
-        Please provide:
-        1. A revised version of the problem that addresses the feedback
-        2. An updated solution
-        
-        Respond in JSON format with 'revised_problem' and 'revised_solution' fields.
-        """
-        
+        prompt = f"""You are an expert math teacher revising a math problem based on feedback.
+
+=== ORIGINAL PROBLEM ===
+{problem.original_question}
+
+=== CURRENT VARIATION (WITH ISSUES) ===
+Problem: {problem.variation}
+Solution: {problem.solution}
+
+=== FEEDBACK ===
+{feedback}
+
+=== TASK ===
+Revise the problem and solution to address the feedback. The revised problem MUST follow these critical instructions:
+
+=== CRITICAL INSTRUCTIONS ===
+1.  **Analyze the Original Problem**: First, identify the core mathematical concept and the algebraic structure of the original problem. For example, does it resolve to a simple linear equation like `ax + b = c`?
+2.  **Create a Variation**: Create a new problem with different numbers (and a different context if it's a word problem), but which resolves to the *exact same algebraic structure*.
+3.  **Maintain Stylistic Similarity**: The variation should be stylistically similar to the original. If the original is a direct question (e.g., "Solve for x..."), the variation should also be a direct question. If the original is a word problem, the variation should be a word problem.
+
+=== REQUIRED JSON FORMAT ===
+You MUST respond with a valid JSON object containing exactly these two fields:
+- "problem": The revised problem text (ending with a question mark)
+- "solution": A detailed, step-by-step solution for the revised problem.
+
+Your response (ONLY the JSON object, no other text):
+"""
+
         try:
-            # Get revision from LLM
-            response = await self.llm.generate(
+            response = await self.generate_with_llm(
                 prompt=prompt,
-                system_prompt="You are an expert math teacher revising problems based on feedback.",
-                response_format={"type": "json_object"},
-                temperature=0.5  # Lower temperature for more conservative revisions
+                system_prompt="You are an expert math teacher revising problems. Always respond with valid JSON.",
+                temperature=0.6,
+                json_mode=True
             )
-            
-            # Parse and apply the revision
-            result = json.loads(response.choices[0].message.content)
-            
-            if 'revised_problem' in result and 'revised_solution' in result:
-                problem.variation = result['revised_problem'].strip()
-                problem.solution = result['revised_solution'].strip()
+
+            content = response.get("content", "")
+            if not content:
+                self.logger.error("Empty revision response from LLM")
+                return False
+
+            content = content.strip().strip('```json').strip('```').strip()
+            result = json.loads(content)
+
+            if 'problem' in result and 'solution' in result:
+                problem_content = result['problem']
+                solution_content = result['solution']
+
+                if isinstance(problem_content, dict):
+                    problem.variation = json.dumps(problem_content)
+                else:
+                    problem.variation = str(problem_content).strip()
+
+                if isinstance(solution_content, dict):
+                    problem.solution = json.dumps(solution_content)
+                else:
+                    problem.solution = str(solution_content).strip()
+                    
                 return True
-                
+            else:
+                self.logger.error(f"Invalid revision format from LLM: {content}")
+                return False
+
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Failed to parse LLM revision as JSON: {e}\nContent: {content}")
+            return False
         except Exception as e:
             self.logger.error(f"Error revising problem: {e}")
-            
-        return False
+            return False
     
     def _load_problem_templates(self):
         """Load problem templates from the problems directory."""
@@ -407,7 +503,7 @@ class TeacherAgent(Agent):
     
     def _validate_template(self, template: Dict[str, Any]) -> bool:
         """Validate a problem template has all required fields."""
-        required_fields = ['id', 'problem', 'type', 'difficulty', 'solution', 'variations']
+        required_fields = ['id', 'original_question']
         return all(field in template for field in required_fields)
     
     def save_problems(self, output_dir: Optional[str] = None):
@@ -433,39 +529,3 @@ class TeacherAgent(Agent):
         return [p.to_dict() for p in self.rejected_problems]
 
 
-# Example usage
-async def example():
-    """Example usage of the TeacherAgent with StudentAgent."""
-    # Create a student agent
-    student = StudentAgent(grade_level=7)
-    
-    # Create a teacher agent with the student agent
-    teacher = TeacherAgent(student_agent=student)
-    
-    # Check if we have any problem templates
-    if not teacher.problem_templates:
-        print("No problem templates found. Please add some to the data/problems directory.")
-        return
-    
-    print(f"Loaded {len(teacher.problem_templates)} problem templates")
-    
-    # Generate and validate a problem variation
-    problem = await teacher.generate_problem_variation()
-    
-    if problem:
-        print("\n✅ Generated problem:")
-        print(f"Original: {problem.original_question}")
-        print(f"Variation: {problem.variation}")
-        print(f"Solution: {problem.solution}")
-        print("Status: Approved")
-        
-        # Save approved problems
-        teacher.save_problems()
-        print("\nProblems saved successfully!")
-    else:
-        print("\n❌ Failed to generate a valid problem variation")
-
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(example())

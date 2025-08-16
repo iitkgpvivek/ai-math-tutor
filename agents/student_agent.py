@@ -7,6 +7,7 @@ provides feedback, and participates in the iterative review process with the Tea
 
 import asyncio
 import time
+import json
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from enum import Enum
@@ -97,7 +98,8 @@ class StudentAgent(Agent):
         self,
         problem_text: str,
         solution: str,
-        problem_id: Optional[str] = None
+        problem_id: Optional[str] = None,
+        original_question: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Validate if a math problem is appropriate for the student's grade level.
@@ -113,27 +115,29 @@ class StudentAgent(Agent):
         problem_id = problem_id or str(hash(problem_text))
         self.logger.debug("Validating problem: %s", problem_text[:50] + "...")
         
-        # Check if we've reviewed this problem before
-        if problem_id in self.reviews:
-            last_review = self.reviews[problem_id][-1]
-            return {
-                "is_valid": last_review.is_valid,
-                "validation_result": last_review.validation_result.value,
-                "feedback": last_review.feedback,
-                "iteration": last_review.iteration,
-                "timestamp": last_review.timestamp
-            }
+        # If this is the first time seeing this problem, initialize its review history.
+        if problem_id not in self.reviews:
+            self.reviews[problem_id] = []
         
-        # Start a new review
-        self.reviews[problem_id] = []
-        return await self._start_review(problem_text, solution, problem_id)
+        # Determine the current iteration number from the review history.
+        iteration = len(self.reviews.get(problem_id, []))
+
+        # Start or continue the review for the current iteration.
+        return await self._start_review(
+            problem_text,
+            solution,
+            problem_id,
+            iteration=iteration,
+            original_question=original_question
+        )
     
     async def _start_review(
         self,
         problem_text: str,
         solution: str,
         problem_id: str,
-        iteration: int = 0
+        iteration: int = 0,
+        original_question: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Start or continue a review iteration.
@@ -158,7 +162,7 @@ class StudentAgent(Agent):
         try:
             # Validate the problem
             is_valid, result, feedback = await asyncio.wait_for(
-                self._validate_problem(problem_text, solution, iteration),
+                self._validate_problem(problem_text, solution, iteration, original_question),
                 timeout=self.iteration_timeout
             )
             
@@ -188,7 +192,8 @@ class StudentAgent(Agent):
         self,
         problem_text: str,
         solution: str,
-        iteration: int
+        iteration: int,
+        original_question: Optional[str] = None
     ) -> Tuple[bool, ValidationResult, str]:
         """
         Validate a math problem and its solution.
@@ -206,24 +211,315 @@ class StudentAgent(Agent):
             return False, ValidationResult.INCOMPLETE, "Problem or solution is empty"
             
         if len(solution.split()) < 3:  # Very basic check
-            return False, ValidationResult.POOR_SOLUTION, "Solution is too brief"
+            return False, ValidationResult.INCOMPLETE, "Solution is too brief"
         
         # Check grade appropriateness
-        is_appropriate, grade_feedback = await self._check_grade_appropriateness(problem_text)
+        is_appropriate, appropriateness_feedback = await self._validate_grade_appropriateness(problem_text, original_question)
         if not is_appropriate:
-            return False, ValidationResult.TOO_HARD if "too complex" in grade_feedback.lower() else ValidationResult.INVALID_FORMAT, grade_feedback
+            return False, ValidationResult.TOO_HARD if "too complex" in appropriateness_feedback.lower() else ValidationResult.INVALID_FORMAT, appropriateness_feedback
             
         # Check math correctness
         is_math_correct, math_feedback = await self._validate_math_correctness(problem_text, solution)
         if not is_math_correct:
-            return False, ValidationResult.INCORRECT, math_feedback
-            
+            return False, ValidationResult.INVALID_FORMAT, math_feedback
+        
         # Check explanation quality
         explanation_ok, explanation_feedback = await self._check_explanation_quality(solution)
         if not explanation_ok:
-            return False, ValidationResult.POOR_EXPLANATION, explanation_feedback
+            return False, ValidationResult.INCOMPLETE, explanation_feedback
             
         return True, ValidationResult.VALID, "Problem is valid"
+    
+    async def _validate_grade_appropriateness(self, problem: str, original_question: Optional[str] = None) -> Tuple[bool, str]:
+        """
+        Check if the problem is appropriate for the student's grade level and maintains
+        the same mathematical structure as the original problem.
+        
+        This method is designed for iterative review, providing increasingly specific
+        feedback to help improve the problem with each iteration.
+        
+        Args:
+            problem: The problem text to check
+            original_question: The original question text for comparison
+            
+        Returns:
+            Tuple of (is_appropriate, feedback)
+        """
+        # Basic validation - check for empty or invalid input
+        if not problem or not problem.strip():
+            return False, "Problem text cannot be empty"
+            
+        problem_lower = problem.lower()
+        
+        # Get the current iteration from the review history
+        current_iteration = len(self.reviews.get(problem, []))
+        
+        # Check for advanced concepts in lower grades
+        if self.grade_level < 8:
+            advanced_concepts = [
+                ("calculus", "Calculus concepts are typically introduced in higher grades"),
+                ("derivative", "Derivatives are too advanced for this grade level"),
+                ("integral", "Integrals are too advanced for this grade level"),
+                ("matrix", "Matrices are typically introduced in higher grades"),
+                ("vector", "Vectors are too advanced for this grade level"),
+                ("trigonometry", "Trigonometry is usually introduced in higher grades"),
+                ("polynomial", "Polynomials may be too complex for this grade level"),
+                ("quadratic", "Quadratic equations are typically taught in higher grades")
+            ]
+            
+            for concept, feedback in advanced_concepts:
+                if concept in problem_lower:
+                    return False, feedback
+                    
+        # Check for basic mathematical structure
+        has_math_ops = any(op in problem for op in ['+', '-', '*', '/', '=', '>', '<'])
+        if not has_math_ops and not any(word in problem_lower for word in ['how many', 'what is', 'find the', 'calculate']):
+            return False, "Problem should contain clear mathematical operations or questions"
+            
+        # If we have an original question, check for structural consistency
+        if original_question and len(original_question) > 10:
+            # Count number of parts (i), (ii) etc.
+            import re
+            original_parts = re.findall(r'\([i]+\)', original_question)
+            variation_parts = re.findall(r'\([i]+\)', problem)
+            
+            if len(original_parts) != len(variation_parts):
+                return False, f"Original has {len(original_parts)} parts, but variation has {len(variation_parts)} parts"
+                
+            # Check for similar problem structure
+            original_has_vars = bool(re.search(r'[a-zA-Z]', original_question))
+            variation_has_vars = bool(re.search(r'[a-zA-Z]', problem))
+            
+            if original_has_vars != variation_has_vars:
+                return False, "Variable usage should match the original problem"
+        
+        # Adjust validation strictness based on iteration
+        if current_iteration == 0:
+            # First iteration: Be more lenient, focus on major issues
+            return True, "Initial validation passed - will refine in subsequent iterations"
+        else:
+            # Later iterations: Be more strict with details
+            return await self._get_detailed_feedback(problem, original_question, current_iteration)
+    
+    async def _get_detailed_feedback(self, problem: str, original_question: Optional[str] = None, iteration: int = 0) -> Tuple[bool, str]:
+        """
+        Use AI to provide detailed feedback on the problem's grade appropriateness and mathematical structure.
+        
+        Args:
+            problem: The problem text to evaluate
+            original_question: The original question text for comparison
+            iteration: The current iteration number
+            
+        Returns:
+            Tuple of (is_appropriate, feedback)
+        """
+        prompt = f"""
+        Evaluate the grade appropriateness and mathematical structure of this problem for a {self.grade_level}th-grade student.
+        
+        ORIGINAL PROBLEM:
+        {original_question or ''}
+        
+        NEW VARIATION:
+        {problem}
+        
+        REVIEW INSTRUCTIONS:
+        Provide detailed, specific feedback to help improve the problem. Focus on both structure and educational value.
+        
+        VALIDATION CRITERIA:
+        1. Mathematical Structure:
+           - Same core problem type as original (e.g., rates, geometry, algebra)
+           - Same number of steps to solve
+           - Similar complexity in calculations
+        
+        2. Grade-Level Appropriateness:
+           - Concepts align with {self.grade_level}th grade curriculum
+           - Language complexity is age-appropriate
+           - Problem context is relatable to students
+        
+        3. For rate and distance problems:
+           - Must use the formula: distance = rate × time
+           - Must handle negative values correctly (e.g., descending below ground level)
+           - Must calculate total distance traveled correctly (final position - initial position)
+           - Units must be consistent and appropriate
+           
+        4. For geometry problems:
+           - Must use appropriate geometric principles
+           - All necessary information must be provided
+           - Diagrams (if any) should be clear and accurate
+           
+        5. For algebra problems:
+           - Equations should be properly formatted
+           - Variables should be clearly defined
+           - Solution should follow logical steps
+           
+        FEEDBACK FORMAT:
+        1. Start with an overall assessment
+        2. List specific issues found
+        3. Provide concrete suggestions for improvement
+        4. If the problem is valid, explain why it's appropriate
+        
+        Respond with a JSON object containing:
+        {{
+            "is_appropriate": boolean,  # Overall assessment
+            "maintains_structure": boolean,  # If the math structure matches original
+            "difficulty_match": boolean,  # If difficulty matches original
+            "feedback": string,  # Detailed explanation of your analysis
+            "suggestions": [string]  # Specific improvement suggestions if needed
+        }}
+        """
+        
+        try:
+            response = await self.generate_with_llm(
+                prompt=prompt,
+                system_prompt="""You are an expert math curriculum designer with deep knowledge of the 
+                CBSE curriculum. Your role is to ensure math problems are grade-appropriate and maintain 
+                educational value while allowing for creative variations.""",
+                json_mode=True
+            )
+            
+            content = response.get("content", "")
+            if not content:
+                self.logger.warning("Empty response from LLM in grade check")
+                return False, "Could not validate problem: Empty response"
+
+            # Parse the response
+            try:
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
+                
+                if not result.get("maintains_structure", False) and original_question:
+                    return False, result.get("feedback", "Problem does not maintain the mathematical structure of the original.")
+                    
+                if not result.get("difficulty_match", False) and original_question:
+                    return False, result.get("feedback", "Problem difficulty does not match the original.")
+                
+                if not result.get("is_appropriate", False):
+                    return False, result.get("feedback", "Problem is not appropriate for the grade level.")
+                    
+                return True, result.get("feedback", "Problem is appropriate for the grade level and maintains the original's structure.")
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON from LLM in grade check: {e}\nContent: {content}")
+                return False, "Could not validate problem: Invalid response format"
+                
+        except Exception as e:
+            self.logger.error(f"Error in grade validation: {str(e)}")
+            return False, f"Error validating problem: {str(e)}"
+    
+    async def _get_detailed_feedback(self, problem: str, original_question: Optional[str] = None, iteration: int = 0) -> Tuple[bool, str]:
+        """
+        Provide detailed feedback on a problem variation using AI analysis.
+        
+        Args:
+            problem: The problem text to evaluate
+            original_question: The original question for comparison (if any)
+            iteration: Current iteration number (0-based)
+            
+        Returns:
+            Tuple of (is_appropriate, feedback)
+        """
+        # Format the original question or use default
+        original_display = original_question or 'Not provided'
+        
+        # Adjust strictness based on iteration
+        if iteration == 0:
+            strictness = "Be more lenient in the first iteration. Focus on major structural issues and grade-level appropriateness."
+        else:
+            strictness = "Provide detailed, specific feedback. Focus on both structure and educational value."
+        
+        # Use AI for comprehensive evaluation
+        prompt = f"""
+        You are an experienced math teacher reviewing a problem variation for a {self.grade_level}th grade student.
+        
+        ORIGINAL PROBLEM:
+        {original_display}
+        
+        NEW VARIATION:
+        {problem}
+        
+        REVIEW INSTRUCTIONS:
+        {strictness}
+        
+        VALIDATION CRITERIA:
+        1. Mathematical Structure:
+           - Same core problem type as original (e.g., rates, geometry, algebra)
+           - Same number of steps to solve
+           - Similar complexity in calculations
+        
+        2. Grade-Level Appropriateness:
+           - Concepts align with {self.grade_level}th grade curriculum
+           - Language complexity is age-appropriate
+           - Problem context is relatable to students
+        
+        3. For rate and distance problems:
+           - Must use the formula: distance = rate × time
+           - Must handle negative values correctly
+           - Must calculate total distance traveled correctly
+           - Units must be consistent and appropriate
+           
+        4. For geometry problems:
+           - Must use appropriate geometric principles
+           - All necessary information must be provided
+           - Diagrams (if any) should be clear and accurate
+           
+        5. For algebra problems:
+           - Equations should be properly formatted
+           - Variables should be clearly defined
+           - Solution should follow logical steps
+        
+        FEEDBACK FORMAT:
+        1. Start with an overall assessment
+        2. List specific issues found
+        3. Provide concrete suggestions for improvement
+        4. If the problem is valid, explain why it's appropriate
+        
+        Respond with a JSON object containing:
+        {{
+            "is_appropriate": boolean,
+            "maintains_structure": boolean,
+            "difficulty_match": boolean,
+            "feedback": string,
+            "suggestions": [string]
+        }}
+        """
+        
+        try:
+            response = await self.generate_with_llm(
+                prompt=prompt,
+                system_prompt="""You are an expert math curriculum designer with deep knowledge of the 
+                CBSE curriculum. Your role is to ensure math problems are grade-appropriate and maintain 
+                educational value while allowing for creative variations.""",
+                json_mode=True
+            )
+            
+            content = response.get("content", "")
+            if not content:
+                self.logger.warning("Empty response from LLM in grade check")
+                return False, "Could not validate problem: Empty response"
+
+            # Parse the response
+            try:
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
+                
+                if not result.get("maintains_structure", False) and original_question:
+                    return False, result.get("feedback", "Problem does not maintain the mathematical structure of the original.")
+                    
+                if not result.get("difficulty_match", False) and original_question:
+                    return False, result.get("feedback", "Problem difficulty does not match the original.")
+                
+                if not result.get("is_appropriate", False):
+                    return False, result.get("feedback", "Problem is not appropriate for the grade level.")
+                    
+                return True, result.get("feedback", "Problem is appropriate for the grade level and maintains the original's structure.")
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON from LLM in grade check: {e}\nContent: {content}")
+                return False, "Could not validate problem: Invalid response format"
+                
+        except Exception as e:
+            self.logger.error(f"Error in grade validation: {str(e)}")
+            return False, f"Error validating problem: {str(e)}"
     
     async def _validate_math_correctness(self, problem: str, solution: str) -> Tuple[bool, str]:
         """
@@ -237,150 +533,242 @@ class StudentAgent(Agent):
             Tuple of (is_correct, feedback)
         """
         prompt = f"""
-        Verify if this solution correctly solves the math problem.
+        You are an expert math validator. Carefully analyze this problem and solution:
         
-        Problem: {problem}
-        Solution: {solution}
+        PROBLEM: {problem}
         
-        Check for:
-        1. Correct application of mathematical principles
-        2. Logical flow and reasoning
-        3. Correct final answer
-        4. No calculation errors
+        STUDENT'S SOLUTION: {solution}
+        
+        INSTRUCTIONS:
+        1. First, identify the type of problem (rate/distance, triangle angles, etc.)
+        2. Verify the mathematical correctness step by step
+        3. Pay special attention to:
+           - Correct use of formulas
+           - Proper handling of units
+           - Logical flow of the solution
+           - Correctness of calculations
+        
+        FOR RATE/DISTANCE PROBLEMS:
+        - Verify the formula: distance = rate × time is used correctly
+        - Check that direction (up/down, positive/negative) is handled properly
+        - Ensure the final answer has appropriate units
+        
+        FOR TRIANGLE PROBLEMS:
+        - Verify angle sum property (sum of angles = 180°)
+        - Check that isosceles triangle properties are correctly applied
+        - Ensure the solution follows logically from given information
         
         Respond with a JSON object containing:
-        - is_correct (boolean): Whether the solution is mathematically correct
-        - feedback (string): Detailed explanation
-        - correct_answer (string): The correct answer (if solution is wrong)
-        - suggestions (list): Specific improvement suggestions
+        {{
+            "is_correct": boolean,  # Whether the solution is mathematically correct
+            "feedback": string,     # Detailed explanation of any issues found
+            "correct_answer": string, # The correct answer (if solution is wrong)
+            "error_type": string     # Type of error if any (e.g., "calculation", "formula", "units")
+        }}
+        
+        If the solution is incorrect, provide detailed feedback on what's wrong and how to fix it.
         """
         
         try:
             # Use the base agent's LLM integration
-            response = await self.generate_response(
+            response = await self.generate_with_llm(
                 prompt=prompt,
                 system_prompt="You are a math expert that validates solutions to math problems.",
-                max_tokens=500
+                json_mode=True
             )
             
+            content = response.get("content", "")
+            if not content:
+                self.logger.warning("Empty response from LLM in math validation")
+                return False, "Could not validate solution: Empty response"
+
             # Parse the response
             try:
-                result = json.loads(response)
-                return result.get("is_correct", False), result.get("feedback", "No validation feedback")
-            except json.JSONDecodeError:
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
+                
+                # Use the AI's judgment for all validation
+                is_correct = result.get("is_correct", False)
+                feedback = result.get("feedback", "No validation feedback")
+                
+                # If the AI detected context inappropriateness, trust that judgment
+                if result.get("context_appropriate", True) is False:
+                    return False, feedback or "The solution doesn't make sense in the given context."
+                    
+                # If the AI says it requires an integer but the answer isn't one
+                if result.get("requires_integer", False) and "." in solution and any(word in solution.lower() for word in [".", "point"]):
+                    return False, feedback or "The solution requires a whole number answer, but got a decimal."
+                
+                return is_correct, feedback
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON from LLM in math validation: {e}\nContent: {content}")
                 return False, "Could not validate solution: Invalid response format"
                 
         except Exception as e:
             self.logger.error(f"Error in math validation: {str(e)}")
             return False, f"Error validating solution: {str(e)}"
         
-    async def _check_grade_appropriateness(self, problem_text: str) -> Tuple[bool, str]:
-        """
-        Check if the problem is appropriate for the student's grade level.
+        current_iteration = len(self.reviews.get(problem, []))
         
-        Args:
-            problem_text: The problem text to check
-            
-        Returns:
-            Tuple of (is_appropriate, feedback)
-        """
-        # First do basic checks
-        problem_lower = problem_text.lower()
+        # Adjust validation strictness based on iteration
+        if current_iteration == 0:
+            # First iteration: Be more lenient, focus on major issues
+            strictness = "Be more lenient in the first iteration. Focus on major structural issues and grade-level appropriateness."
+        else:
+            # Later iterations: Be more strict with details
+            strictness = "Provide detailed, specific feedback to help improve the problem. Focus on both structure and educational value."
         
-        # Check for advanced concepts in lower grades
-        if self.grade_level < 8:
-            advanced_topics = ["quadratic", "polynomial", "trigonometry", "calculus", "theorem", "algebra"]
-            if any(topic in problem_lower for topic in advanced_topics):
-                return False, f"Problem contains concepts too advanced for grade {self.grade_level}."
-                
-        # Check for too simple problems in higher grades
-        if self.grade_level > 7:
-            simple_indicators = ["what is 1+1", "basic addition", "counting"]
-            if any(indicator in problem_lower for indicator in simple_indicators):
-                return False, "Problem is too basic for this grade level."
-        
-        # Use AI for more nuanced evaluation
+        # Use AI for comprehensive evaluation
         prompt = f"""
-        Evaluate if this math problem is appropriate for a {self.grade_level}th grade student.
+        You are an experienced math teacher reviewing a problem variation for a {self.grade_level}th grade student.
         
-        Problem: {problem_text}
+        ORIGINAL PROBLEM:
+        {original_display}
         
-        Consider:
-        1. Mathematical concepts and their typical grade level
-        2. Complexity of calculations
-        3. Reading level and vocabulary
-        4. Prior knowledge required
+        NEW VARIATION:
+        {problem}
+        
+        REVIEW INSTRUCTIONS:
+        {strictness}
+        
+        VALIDATION CRITERIA:
+        1. Mathematical Structure:
+           - Same core problem type as original (e.g., rates, geometry, algebra)
+           - Same number of steps to solve
+           - Similar complexity in calculations
+        
+        2. Grade-Level Appropriateness:
+           - Concepts align with {self.grade_level}th grade curriculum
+           - Language complexity is age-appropriate
+           - Problem context is relatable to students
+        
+        3. For rate and distance problems:
+           - Must use the formula: distance = rate × time
+           - Must handle negative values correctly (e.g., descending below ground level)
+           - Must calculate total distance traveled correctly (final position - initial position)
+           - Units must be consistent and appropriate
+           
+        4. For geometry problems:
+           - Must use appropriate geometric principles
+           - All necessary information must be provided
+           - Diagrams (if any) should be clear and accurate
+           
+        5. For algebra problems:
+           - Equations should be properly formatted
+           - Variables should be clearly defined
+           - Solution should follow logical steps
+           
+        FEEDBACK FORMAT:
+        1. Start with an overall assessment
+        2. List specific issues found
+        3. Provide concrete suggestions for improvement
+        4. If the problem is valid, explain why it's appropriate
+        
+        3. For isosceles triangle problems:
+           - If original gives vertex angle and asks for base angles, variation must do the same
+           - If original gives base angles and asks for vertex angle, variation must do the same
+           - The sum of angles must always be 180°
+        
+        4. Grade-level considerations:
+           - Appropriate for {self.grade_level}th grade (CBSE)
+           - Clear and unambiguous language
+           - Reasonable number sizes and complexity
         
         Respond with a JSON object containing:
-        - is_appropriate (boolean): If the problem is suitable for this grade
-        - feedback (string): Detailed reasoning
-        - difficulty (string): "too_easy", "appropriate", or "too_difficult"
-        - suggestions (list): How to adjust difficulty if needed
+        {{
+            "is_appropriate": boolean,  # Overall assessment
+            "maintains_structure": boolean,  # If the math structure matches original
+            "difficulty_match": boolean,  # If difficulty matches original
+            "feedback": string,  # Detailed explanation of your analysis
+            "suggestions": [string]  # Specific improvement suggestions if needed
+        }}
         """
         
         try:
-            # Use the base agent's LLM integration
-            response = await self.generate_response(
+            response = await self.generate_with_llm(
                 prompt=prompt,
-                system_prompt="You are an expert in math curriculum development and grade-level appropriateness.",
-                max_tokens=400
+                system_prompt="""You are an expert math curriculum designer with deep knowledge of the 
+                CBSE curriculum. Your role is to ensure math problems are grade-appropriate and maintain 
+                educational value while allowing for creative variations.""",
+                json_mode=True
             )
             
+            content = response.get("content", "")
+            if not content:
+                self.logger.warning("Empty response from LLM in grade check")
+                return False, "Could not validate problem: Empty response"
+
             # Parse the response
             try:
-                result = json.loads(response)
-                return result.get("is_appropriate", False), result.get("feedback", "No feedback on grade level")
-            except json.JSONDecodeError:
-                self.logger.warning("Received invalid JSON from LLM in grade check")
-                return True, "Grade level check inconclusive - proceeding with caution"
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
+                
+                if not result.get("maintains_structure", False) and original_question:
+                    return False, result.get("feedback", "Problem does not maintain the mathematical structure of the original.")
+                    
+                if not result.get("difficulty_match", False) and original_question:
+                    return False, result.get("feedback", "Problem difficulty does not match the original.")
+                
+                if not result.get("is_appropriate", False):
+                    return False, result.get("feedback", "Problem is not appropriate for the grade level.")
+                    
+                return True, result.get("feedback", "Problem is appropriate for the grade level and maintains the original's structure.")
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON from LLM in grade check: {e}\nContent: {content}")
+                return False, "Could not validate problem: Invalid response format"
                 
         except Exception as e:
-            self.logger.error(f"Error in grade level check: {str(e)}")
-            return True, f"Error checking grade level: {str(e)} - proceeding with caution"
+            self.logger.error(f"Error in grade validation: {str(e)}")
+            return False, f"Error validating problem: {str(e)}"
     
     async def _check_explanation_quality(self, solution: str) -> Tuple[bool, str]:
         """
-        Use AI to evaluate the quality of the solution explanation.
+        Use AI to validate the quality of the solution's explanation.
         
         Args:
             solution: The solution explanation to evaluate
-            
+
         Returns:
             Tuple of (is_quality, feedback)
         """
         prompt = f"""
-        Evaluate this math solution explanation for a {self.grade_level}th grade student.
-        Check for:
-        1. Clear step-by-step reasoning
-        2. Correct mathematical operations
-        3. Age-appropriate language
-        4. Complete solution
-        
+        Evaluate the quality of this solution's explanation for a {self.grade_level}th-grade student.
+
         Solution: {solution}
-        
+
+        Check for:
+        1. Clarity and simplicity of language
+        2. Step-by-step breakdown
+        3. Completeness of the explanation
+
         Respond with a JSON object containing:
-        - is_quality (boolean): Whether the explanation meets quality standards
-        - feedback (string): Detailed feedback
-        - missing_elements (list): Any missing components
-        - suggested_improvements (list): Specific suggestions
+        - is_quality (boolean): True if the explanation is high quality
+        - feedback (string): Specific suggestions for improvement
         """
-        
+
         try:
-            # Use the base agent's LLM integration
-            response = await self.generate_response(
+            response = await self.generate_with_llm(
                 prompt=prompt,
-                system_prompt="You are a math education expert evaluating solution explanations.",
-                max_tokens=500
+                system_prompt="You are an expert math teacher evaluating solution explanations.",
+                json_mode=True
             )
-            
+
+            content = response.get("content", "")
+            if not content:
+                self.logger.warning("Empty response from LLM in explanation quality check")
+                return True, "Explanation quality check inconclusive - empty response"
+
             # Parse the response
             try:
-                result = json.loads(response)
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
                 return result.get("is_quality", False), result.get("feedback", "No feedback provided")
-            except json.JSONDecodeError:
-                # Fallback if response isn't valid JSON
-                return False, "Could not evaluate explanation quality: Invalid response format"
-                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON from LLM in explanation quality check: {e}\nContent: {content}")
+                return True, "Could not evaluate explanation quality: Invalid response format"
+
         except Exception as e:
             self.logger.error(f"Error in explanation validation: {str(e)}")
             return False, f"Error evaluating explanation: {str(e)}"
@@ -502,19 +890,3 @@ class StudentAgent(Agent):
             'explanation': 'This is a placeholder for a detailed explanation that would be generated by the LLM, written in a way that is understandable to a 7th grader.'
         }
 
-
-# Example usage
-async def example():
-    """Example usage of the StudentAgent."""
-    student = StudentAgent(grade_level=5)
-    
-    problem = "What is 2 + 2?"
-    solution = "The answer is 4."
-    
-    result = await student.validate_problem(problem, solution)
-    print(f"Validation result: {result}")
-
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(example())

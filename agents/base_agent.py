@@ -39,10 +39,11 @@ class Agent:
     def __init__(
         self, 
         agent_id: str, 
-        config: Optional[Dict[str, Any]] = None,
         role: AgentRole = AgentRole.STUDENT,
+        config: Optional[Dict[str, Any]] = None,
         llm_endpoint: Optional[str] = None,
-        llm_headers: Optional[Dict[str, str]] = None
+        llm_headers: Optional[Dict[str, str]] = None,
+        **kwargs
     ):
         """
         Initialize the agent with a unique ID and optional configuration.
@@ -61,7 +62,7 @@ class Agent:
         self.state = {}
         self.conversation_history: List[Message] = []
         
-        # LLM configuration
+        # LLM configuration for local Ollama server
         self.llm_endpoint = llm_endpoint or "http://localhost:11434/api/generate"
         self.llm_headers = llm_headers or {"Content-Type": "application/json"}
         self.llm_model = self.config.get("llm_model", "mistral")
@@ -159,20 +160,12 @@ class Agent:
         if temperature is None:
             temperature = self.llm_temperature
             
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        # Add conversation history
-        for msg in self.conversation_history[-5:]:  # Last 5 messages for context
-            messages.append({"role": msg.role, "content": msg.content})
-        
-        # Add current prompt
-        messages.append({"role": "user", "content": prompt})
-        
+        # Prepare the prompt with system message if provided
+        full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+
         payload = {
             "model": self.llm_model,
-            "messages": messages,
+            "prompt": full_prompt,
             "temperature": temperature,
             "max_tokens": max_tokens,
             "stream": False
@@ -192,22 +185,21 @@ class Agent:
                     response.raise_for_status()
                     result = await response.json()
                     
-                    # Extract the response content
-                    if "choices" in result and result["choices"]:
-                        content = result["choices"][0]["message"]["content"]
-                        if json_mode:
-                            try:
-                                content = json.loads(content)
-                            except json.JSONDecodeError:
-                                self.logger.warning("Failed to parse LLM response as JSON")
+                    # Extract the response content from Ollama API
+                    if 'response' in result:
+                        return {
+                            'content': result['response'],
+                            'model': result.get('model', self.llm_model),
+                            'usage': {
+                                'prompt_tokens': result.get('prompt_eval_count', 0),
+                                'completion_tokens': result.get('eval_count', 0),
+                                'total_tokens': (result.get('prompt_eval_count', 0) + 
+                                               result.get('eval_count', 0))
+                            }
+                        }
                     else:
-                        content = result.get("response", "")
-                    
-                    return {
-                        "content": content,
-                        "model": self.llm_model,
-                        "usage": result.get("usage", {})
-                    }
+                        self.logger.error(f"Unexpected response format: {result}")
+                        return {'content': "I'm having trouble generating a response right now.", 'error': 'invalid_format'}
         except Exception as e:
             self.logger.error(f"Error generating with LLM: {str(e)}")
             return {
