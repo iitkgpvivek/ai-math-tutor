@@ -1,0 +1,16 @@
+{
+  "problem_id": "prob_1755343974_2594",
+  "original_question": "Solve: 12/7(x-5) = 24 + 8x",
+  "variation": "Solve: 9/5(y-3) = 18 + 3y",
+  "solution": "Step 1: Distribute y on both sides of the equation. Step 2: 9y - 9*3 = 18*5 + 3*y. Step 3: Simplify to 9y - 27 = 90 + 3y. Step 4: Combine like terms, 6y = 117. Step 5: Solve for y by dividing both sides by 6, y = 117/6.",
+  "status": "approved",
+  "reviews": [
+    {
+      "feedback": "Problem is valid",
+      "is_valid": true,
+      "validation_result": "valid",
+      "iteration": 0,
+      "timestamp": 1755343999.110214
+    }
+  ]
+}

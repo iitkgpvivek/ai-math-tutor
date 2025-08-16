@@ -279,9 +279,26 @@ Your response (ONLY the JSON object, no other text):
         self,
         problem: ProblemVariation,
         max_iterations: int = 3,
-        iteration_timeout: float = 30.0,
-        total_timeout: float = 120.0
+        iteration_timeout: float = 20.0,
+        total_timeout: float = 90.0
     ) -> Dict[str, Any]:
+        """
+        Validate a problem with the StudentAgent through iterative review.
+        
+        The validation process works as follows:
+        1. First attempt: Generate and validate initial variation with minimal constraints
+        2. If validation fails, use feedback to revise the problem
+        3. Continue for max_iterations or until problem is validated
+        
+        Args:
+            problem: The problem variation to validate
+            max_iterations: Maximum number of review iterations
+            iteration_timeout: Timeout per iteration in seconds
+            total_timeout: Total timeout for the entire review in seconds
+            
+        Returns:
+            Dict containing validation results and final problem state
+        """
         """
         Validate a problem with the StudentAgent through iterative review.
         
@@ -302,7 +319,16 @@ Your response (ONLY the JSON object, no other text):
         start_time = time.time()
         iteration = 0
         
+        # Log initial problem
+        self.logger.info("\n" + "="*80)
+        self.logger.info(f"🚀 Starting validation for problem (ID: {problem.problem_id})")
+        self.logger.info(f"📝 Initial problem: {problem.variation[:100]}...")
+        self.logger.info("-"*80)
+        
         while iteration < max_iterations and (time.time() - start_time) < total_timeout:
+            self.logger.info(f"\n🔄 ITERATION {iteration + 1}/{max_iterations}")
+            self.logger.info(f"📋 Problem: {problem.variation}")
+            self.logger.info(f"📝 Solution: {problem.solution[:200]}..." if len(problem.solution) > 200 else f"📝 Solution: {problem.solution}")
             try:
                 # Get student's review
                 review_result = await asyncio.wait_for(
@@ -326,11 +352,42 @@ Your response (ONLY the JSON object, no other text):
                 )
                 problem.add_review(review)
                 
-                # If problem is valid, return success
+                # If problem is valid, return success with the actual feedback
                 if review_result.get('is_valid', False):
+                    feedback = review_result.get('feedback', "Problem validated successfully!")
                     return {
                         "is_valid": True,
-                        "feedback": "Problem validated successfully!",
+                        "feedback": feedback,
+                        "iterations": iteration + 1,
+                        "reviews": [r.to_dict() for r in problem.reviews]
+                    }
+                else:
+                    # If problem is invalid, try to revise it if we have more iterations left
+                    if iteration < max_iterations - 1:
+                        feedback = review_result.get('feedback', "Problem validation failed. Please revise.")
+                        
+                        self.logger.info("\n" + "-"*60)
+                        self.logger.info("❌ VALIDATION FAILED")
+                        self.logger.info(f"📢 Feedback: {feedback}")
+                        self.logger.info("🔄 Attempting to revise problem...")
+                        
+                        # Try to revise the problem
+                        revision_successful = await self._revise_problem(
+                            problem=problem,
+                            feedback=feedback
+                        )
+                        
+                        if revision_successful:
+                            self.logger.info("\n✅ REVISION SUCCESSFUL")
+                            self.logger.info(f"📝 Revised problem: {problem.variation[:100]}...")
+                            iteration += 1
+                            continue  # Try validating the revised problem
+                        
+                    # If we can't revise or out of iterations, return the failure
+                    feedback = review_result.get('feedback', "Problem validation failed after revision attempts.")
+                    return {
+                        "is_valid": False,
+                        "feedback": feedback,
                         "iterations": iteration + 1,
                         "reviews": [r.to_dict() for r in problem.reviews]
                     }
@@ -362,6 +419,7 @@ Your response (ONLY the JSON object, no other text):
                 iteration += 1
                 
             except asyncio.TimeoutError:
+                self.logger.error("\n⏱️  VALIDATION TIMED OUT")
                 return {
                     "is_valid": False,
                     "feedback": "Validation timed out",
@@ -369,9 +427,19 @@ Your response (ONLY the JSON object, no other text):
                     "reviews": [r.to_dict() for r in problem.reviews]
                 }
         
+        if iteration >= max_iterations:
+            self.logger.error("\n❌ MAXIMUM ITERATIONS REACHED")
+            feedback = "Maximum iterations reached without finding a valid variation"
+        else:
+            self.logger.error("\n⏱️  TOTAL TIME LIMIT REACHED")
+            feedback = "Total time limit reached"
+            
+        self.logger.info(f"\n📊 FINAL STATUS: Problem {'VALIDATED' if problem.reviews and problem.reviews[-1].is_valid else 'REJECTED'}")
+        self.logger.info("="*80 + "\n")
+        
         return {
             "is_valid": False,
-            "feedback": "Maximum iterations or time limit reached",
+            "feedback": feedback,
             "iterations": iteration,
             "reviews": [r.to_dict() for r in problem.reviews]
         }
@@ -379,14 +447,16 @@ Your response (ONLY the JSON object, no other text):
     async def _revise_problem(
         self,
         problem: ProblemVariation,
-        feedback: str
+        feedback: str,
+        max_retries: int = 3
     ) -> bool:
         """
-        Revise a problem based on feedback using LLM.
+        Revise a problem based on feedback using LLM, with retries.
 
         Args:
             problem: The problem to revise
             feedback: Feedback from the StudentAgent
+            max_retries: Maximum number of revision attempts.
 
         Returns:
             True if revision was successful, False otherwise
@@ -419,47 +489,51 @@ You MUST respond with a valid JSON object containing exactly these two fields:
 Your response (ONLY the JSON object, no other text):
 """
 
-        try:
-            response = await self.generate_with_llm(
-                prompt=prompt,
-                system_prompt="You are an expert math teacher revising problems. Always respond with valid JSON.",
-                temperature=0.6,
-                json_mode=True
-            )
+        for attempt in range(max_retries):
+            try:
+                response = await self.generate_with_llm(
+                    prompt=prompt,
+                    system_prompt="You are an expert math teacher revising problems. Always respond with valid JSON.",
+                    temperature=0.6 + (attempt * 0.1),  # Increase temperature slightly on retries
+                    json_mode=True
+                )
 
-            content = response.get("content", "")
-            if not content:
-                self.logger.error("Empty revision response from LLM")
-                return False
+                content = response.get("content", "")
+                if not content:
+                    self.logger.warning(f"Attempt {attempt + 1}/{max_retries}: Empty revision response from LLM")
+                    continue
 
-            content = content.strip().strip('```json').strip('```').strip()
-            result = json.loads(content)
+                content = content.strip().strip('```json').strip('```').strip()
+                result = json.loads(content)
 
-            if 'problem' in result and 'solution' in result:
-                problem_content = result['problem']
-                solution_content = result['solution']
+                if 'problem' in result and 'solution' in result:
+                    problem_content = result['problem']
+                    solution_content = result['solution']
 
-                if isinstance(problem_content, dict):
-                    problem.variation = json.dumps(problem_content)
+                    if isinstance(problem_content, dict):
+                        problem.variation = json.dumps(problem_content)
+                    else:
+                        problem.variation = str(problem_content).strip()
+
+                    if isinstance(solution_content, dict):
+                        problem.solution = json.dumps(solution_content)
+                    else:
+                        problem.solution = str(solution_content).strip()
+                        
+                    return True
                 else:
-                    problem.variation = str(problem_content).strip()
+                    self.logger.warning(f"Attempt {attempt + 1}/{max_retries}: Invalid revision format from LLM: {content}")
 
-                if isinstance(solution_content, dict):
-                    problem.solution = json.dumps(solution_content)
-                else:
-                    problem.solution = str(solution_content).strip()
-                    
-                return True
-            else:
-                self.logger.error(f"Invalid revision format from LLM: {content}")
-                return False
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Attempt {attempt + 1}/{max_retries}: Failed to parse LLM revision as JSON: {e}\nContent: {content}")
+            except Exception as e:
+                self.logger.error(f"Attempt {attempt + 1}/{max_retries}: An unexpected error occurred during revision: {e}", exc_info=True)
+            
+            # Wait a moment before retrying
+            await asyncio.sleep(1)
 
-        except json.JSONDecodeError as e:
-            self.logger.error(f"Failed to parse LLM revision as JSON: {e}\nContent: {content}")
-            return False
-        except Exception as e:
-            self.logger.error(f"Error revising problem: {e}")
-            return False
+        self.logger.error(f"Failed to revise problem after {max_retries} attempts.")
+        return False
     
     def _load_problem_templates(self):
         """Load problem templates from the problems directory."""

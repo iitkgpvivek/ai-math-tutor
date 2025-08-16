@@ -263,9 +263,9 @@ class LocalLLMGenerator:
                     cleaned = re.sub(r'(?<!\\)"\s*\n\s*"', '\\n', cleaned)
                     
                     # 7. Fix unescaped quotes in strings
-                    cleaned = re.sub(r'(?<!\\)"(.*?)(?<!\\)"', 
-                                  lambda m: f'"{m.group(1).replace("\"", "\\\"")}"', 
-                                  cleaned)
+                    def escape_quotes(match):
+                        return '"' + match.group(1).replace('"', '\\"') + '"'
+                    cleaned = re.sub(r'(?<!\\)"(.*?)(?<!\\)"', escape_quotes, cleaned)
                     
                     # 8. Fix boolean values
                     cleaned = re.sub(r':\s*true\b', ': true', cleaned, flags=re.IGNORECASE)
@@ -479,7 +479,8 @@ class LocalLLMGenerator:
                             variation = f"What is {' ÷ '.join(map(str, operands))}?"
                             op_name = 'division'
                         else:
-                            variation = f"Calculate: {' '.join(f"{op} {operation} " for op in operands).strip()}"
+                            operation_str = f' {operation} '.join(map(str, operands))
+                            variation = f"Calculate: {operation_str}"
                             op_name = 'calculation'
                         
                         # Format the explanation

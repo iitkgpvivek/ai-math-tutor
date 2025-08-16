@@ -21,12 +21,17 @@ def save_worksheet(problems, filename=None):
     """
     # Create a timestamp for the worksheet
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    date_str = datetime.now().strftime("%Y-%m-%d")
     
     # Create the worksheets directory if it doesn't exist
     os.makedirs('worksheets', exist_ok=True)
     
-    # Create a subdirectory for this worksheet
-    worksheet_dir = os.path.join('worksheets', f'worksheet_{timestamp}')
+    # Create a date-based subdirectory (YYYY-MM-DD)
+    date_dir = os.path.join('worksheets', date_str)
+    os.makedirs(date_dir, exist_ok=True)
+    
+    # Create a subdirectory for this specific worksheet
+    worksheet_dir = os.path.join(date_dir, f'worksheet_{timestamp}')
     os.makedirs(worksheet_dir, exist_ok=True)
     
     # Generate filename if not provided

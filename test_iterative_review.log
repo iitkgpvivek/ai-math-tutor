@@ -1,0 +1,473 @@
+2025-08-16 18:42:49,845 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:42:49,846 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:42:49,846 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:42:49,847 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:42:49,847 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:42:49,847 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:42:49,848 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:42:49,848 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:42:49,848 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:42:49,849 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:42:49,849 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:42:49,849 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:42:49,850 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:42:49,850 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:42:49,851 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:42:49,851 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:42:49,851 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:42:49,852 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:42:49,852 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:42:49,852 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:42:49,853 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:42:49,853 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:42:49,853 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:42:49,853 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:42:49,854 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:42:49,854 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:42:49,854 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:42:49,854 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:42:49,855 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:42:49,855 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:42:49,855 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:42:49,855 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:42:49,855 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:42:49,856 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:42:49,856 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:42:49,856 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:42:49,857 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:42:49,857 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:42:49,857 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:42:49,857 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:42:49,858 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:42:49,858 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:42:49,858 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:42:49,858 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:42:49,858 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:42:49,858 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:44:14,515 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:44:14,515 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:44:14,515 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:44:14,516 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:44:14,517 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:44:14,518 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:44:14,519 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:44:14,519 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:44:14,519 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:44:14,519 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:44:14,519 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:44:14,519 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:44:14,519 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:44:14,520 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:44:14,520 - __main__ - ERROR - An error occurred during the test run.
+Traceback (most recent call last):
+  File "/Users/vivek/CascadeProjects/windsurf-project/tests/test_iterative_review.py", line 104, in main
+    await test_validation(teacher, student, max_attempts=3)
+  File "/Users/vivek/CascadeProjects/windsurf-project/tests/test_iterative_review.py", line 68, in test_validation
+    result = await teacher._validate_problem(problem, max_iterations=max_attempts)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vivek/CascadeProjects/windsurf-project/agents/teacher_agent.py", line 308, in _validate_problem
+    review_result = await asyncio.wait_for(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/vivek/CascadeProjects/windsurf-project/agents/student_agent.py", line 126, in validate_problem
+    return await self._start_review(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/vivek/CascadeProjects/windsurf-project/agents/student_agent.py", line 164, in _start_review
+    is_valid, result, feedback = await asyncio.wait_for(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/vivek/CascadeProjects/windsurf-project/agents/student_agent.py", line 214, in _validate_problem
+    return False, ValidationResult.POOR_SOLUTION, "Solution is too brief"
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'ValidationResult' has no attribute 'POOR_SOLUTION'
+2025-08-16 18:44:47,086 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:44:47,086 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:44:47,086 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:44:47,087 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:44:47,088 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:44:47,089 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:44:47,089 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:44:47,089 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:44:47,089 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:44:47,089 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:44:47,089 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:44:47,089 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:44:47,089 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:45:00,912 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:45:15,387 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:45:15,387 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:45:15,387 - __main__ - INFO - Iterations: 2
+2025-08-16 18:45:15,387 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:45:15,387 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:45:15,387 - __main__ - INFO - TEST CASE: Advanced Concept
+2025-08-16 18:45:15,387 - __main__ - INFO - Description: Contains calculus concept not suitable for grade 7
+2025-08-16 18:45:15,387 - __main__ - INFO - Problem: Find the derivative of f(x) = x²
+2025-08-16 18:45:33,620 - TeacherAgent.teacher_agent - ERROR - Error revising problem: 'dict' object has no attribute 'strip'
+2025-08-16 18:45:33,620 - __main__ - INFO - Final validation result: INVALID
+2025-08-16 18:45:33,620 - __main__ - INFO - Final Feedback: Failed to revise problem based on feedback
+2025-08-16 18:45:33,620 - __main__ - INFO - Iterations: 1
+2025-08-16 18:45:33,620 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:45:33,620 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:45:33,620 - __main__ - INFO - TEST CASE: Multi-part Problem
+2025-08-16 18:45:33,620 - __main__ - INFO - Description: Multi-part geometry problem
+2025-08-16 18:45:33,620 - __main__ - INFO - Problem: (i) Find the perimeter of a rectangle with length 5cm and width 3cm.
+(ii) Find its area.
+2025-08-16 18:45:45,364 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:45:57,092 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:45:57,092 - __main__ - INFO - Final validation result: INVALID
+2025-08-16 18:45:57,092 - __main__ - INFO - Final Feedback: Problem rejected after review.
+2025-08-16 18:45:57,092 - __main__ - INFO - Iterations: 3
+2025-08-16 18:45:57,092 - __main__ - ERROR - ❌ Test failed: Expected to pass but failed with feedback: Problem rejected after review.
+2025-08-16 18:45:57,092 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:45:57,092 - __main__ - INFO - TEST CASE: Incomplete Problem
+2025-08-16 18:45:57,092 - __main__ - INFO - Description: Missing required information (radius)
+2025-08-16 18:45:57,092 - __main__ - INFO - Problem: Calculate the area of a circle
+2025-08-16 18:46:09,756 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:46:27,855 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:46:27,856 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:46:27,856 - __main__ - INFO - Iterations: 2
+2025-08-16 18:46:27,856 - __main__ - ERROR - ❌ Test failed: Expected to fail but passed with feedback: Problem validated successfully!
+2025-08-16 18:46:27,856 - __main__ - INFO - All tests completed!
+2025-08-16 18:47:40,825 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:47:40,826 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:47:40,826 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:47:40,826 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:47:40,826 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:47:40,827 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:47:40,827 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:47:40,827 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:47:40,828 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:47:40,828 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:47:40,828 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:47:40,828 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:47:40,828 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:47:40,829 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:47:40,829 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:47:40,829 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:47:40,829 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:47:40,830 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:47:40,830 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:47:40,830 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:47:40,831 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:47:40,831 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:47:40,831 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:47:40,831 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:47:40,832 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:47:40,832 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:47:40,832 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:47:40,832 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:47:40,833 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:47:40,833 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:47:40,833 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:47:40,833 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:47:40,835 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:47:40,835 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:47:40,835 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:47:40,835 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:47:40,836 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:47:40,836 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:47:40,836 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:47:40,836 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:47:40,837 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:47:40,837 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:47:40,837 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:47:40,837 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:47:40,837 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:47:40,837 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:47:54,623 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:48:11,443 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:48:11,444 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:48:11,444 - __main__ - INFO - Iterations: 2
+2025-08-16 18:48:11,444 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:48:11,444 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:48:11,444 - __main__ - INFO - TEST CASE: Advanced Concept
+2025-08-16 18:48:11,444 - __main__ - INFO - Description: Contains calculus concept not suitable for grade 7
+2025-08-16 18:48:11,444 - __main__ - INFO - Problem: Find the derivative of f(x) = x²
+2025-08-16 18:48:39,014 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:49:00,569 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:49:17,795 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:49:17,795 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:49:17,795 - __main__ - INFO - Iterations: 3
+2025-08-16 18:49:17,795 - __main__ - ERROR - ❌ Test failed: Expected to fail but passed with feedback: Problem validated successfully!
+2025-08-16 18:49:17,795 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:49:17,795 - __main__ - INFO - TEST CASE: Multi-part Problem
+2025-08-16 18:49:17,795 - __main__ - INFO - Description: Multi-part geometry problem
+2025-08-16 18:49:17,795 - __main__ - INFO - Problem: (i) Find the perimeter of a rectangle with length 5cm and width 3cm.
+(ii) Find its area.
+2025-08-16 18:49:33,109 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:49:50,129 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:49:50,130 - __main__ - INFO - Final validation result: INVALID
+2025-08-16 18:49:50,130 - __main__ - INFO - Final Feedback: Problem rejected after review.
+2025-08-16 18:49:50,130 - __main__ - INFO - Iterations: 3
+2025-08-16 18:49:50,130 - __main__ - ERROR - ❌ Test failed: Expected to pass but failed with feedback: Problem rejected after review.
+2025-08-16 18:49:50,130 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:49:50,130 - __main__ - INFO - TEST CASE: Incomplete Problem
+2025-08-16 18:49:50,130 - __main__ - INFO - Description: Missing required information (radius)
+2025-08-16 18:49:50,130 - __main__ - INFO - Problem: Calculate the area of a circle
+2025-08-16 18:50:03,374 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:50:20,082 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:50:20,082 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:50:20,082 - __main__ - INFO - Iterations: 2
+2025-08-16 18:50:20,082 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:50:20,082 - __main__ - INFO - All tests completed!
+2025-08-16 18:51:39,274 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:51:39,274 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:51:39,274 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:51:39,275 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:51:39,275 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:51:39,276 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:51:39,276 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:51:39,276 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:51:39,276 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:51:39,277 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:51:39,277 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:51:39,277 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:51:39,277 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:51:39,278 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:51:39,278 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:51:39,278 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:51:39,278 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:51:39,278 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:51:39,279 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:51:39,279 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:51:39,279 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:51:39,280 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:51:39,280 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:51:39,280 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:51:39,281 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:51:39,281 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:51:39,281 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:51:39,282 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:51:39,282 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:51:39,282 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:51:39,283 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:51:39,283 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:51:39,284 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:51:39,284 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:51:39,284 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:51:39,284 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:51:39,285 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:51:39,285 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:51:39,285 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:51:39,285 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:51:39,286 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:51:39,286 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:51:39,286 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:51:39,286 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:51:39,286 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:51:39,286 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:51:52,651 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:52:09,486 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:52:09,487 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:52:09,487 - __main__ - INFO - Iterations: 2
+2025-08-16 18:52:09,487 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:52:09,487 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:52:09,487 - __main__ - INFO - TEST CASE: Advanced Concept
+2025-08-16 18:52:09,487 - __main__ - INFO - Description: Contains calculus concept not suitable for grade 7
+2025-08-16 18:52:09,487 - __main__ - INFO - Problem: Find the derivative of f(x) = x²
+2025-08-16 18:52:23,818 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:52:43,091 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:53:03,153 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:53:03,153 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:53:03,154 - __main__ - INFO - Iterations: 3
+2025-08-16 18:53:03,154 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:53:03,154 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:53:03,154 - __main__ - INFO - TEST CASE: Multi-part Problem
+2025-08-16 18:53:03,154 - __main__ - INFO - Description: Multi-part geometry problem
+2025-08-16 18:53:03,154 - __main__ - INFO - Problem: (i) Find the perimeter of a rectangle with length 5cm and width 3cm.
+(ii) Find its area.
+2025-08-16 18:53:18,318 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:53:31,150 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:53:31,150 - __main__ - INFO - Final validation result: INVALID
+2025-08-16 18:53:31,150 - __main__ - INFO - Final Feedback: Problem rejected after review.
+2025-08-16 18:53:31,150 - __main__ - INFO - Iterations: 3
+2025-08-16 18:53:31,150 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:53:31,150 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:53:31,151 - __main__ - INFO - TEST CASE: Incomplete Problem
+2025-08-16 18:53:31,151 - __main__ - INFO - Description: Missing required information (radius)
+2025-08-16 18:53:31,151 - __main__ - INFO - Problem: Calculate the area of a circle
+2025-08-16 18:53:45,372 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:54:03,855 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:54:03,856 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:54:03,856 - __main__ - INFO - Iterations: 2
+2025-08-16 18:54:03,856 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:54:03,856 - __main__ - INFO - All tests completed!
+2025-08-16 18:54:47,237 - StudentAgent.student_grade_7 - INFO - Initialized StudentAgent with ID: student_grade_7, Role: student
+2025-08-16 18:54:47,237 - agents.student_agent - INFO - Initialized StudentAgent for grade 7
+2025-08-16 18:54:47,237 - TeacherAgent.teacher_agent - INFO - Initialized TeacherAgent with ID: teacher_agent, Role: tutor
+2025-08-16 18:54:47,238 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098900_sim
+2025-08-16 18:54:47,238 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099304_sim
+2025-08-16 18:54:47,239 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763891_int
+2025-08-16 18:54:47,239 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758391_dec
+2025-08-16 18:54:47,239 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099372_sim
+2025-08-16 18:54:47,239 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097939_sim
+2025-08-16 18:54:47,240 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754769195_int
+2025-08-16 18:54:47,240 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755097847_sim
+2025-08-16 18:54:47,240 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764052_int
+2025-08-16 18:54:47,240 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099646_sim
+2025-08-16 18:54:47,241 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098148_sim
+2025-08-16 18:54:47,241 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098383_sim
+2025-08-16 18:54:47,241 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754763416_int
+2025-08-16 18:54:47,241 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098482_sim
+2025-08-16 18:54:47,242 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099217_sim
+2025-08-16 18:54:47,242 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098648_sim
+2025-08-16 18:54:47,242 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099006_sim
+2025-08-16 18:54:47,242 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098269_sim
+2025-08-16 18:54:47,243 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099538_sim
+2025-08-16 18:54:47,243 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766194_int
+2025-08-16 18:54:47,243 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099868_sim
+2025-08-16 18:54:47,244 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765838_int
+2025-08-16 18:54:47,244 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766475_int
+2025-08-16 18:54:47,244 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765950_int
+2025-08-16 18:54:47,244 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766420_int
+2025-08-16 18:54:47,245 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099750_sim
+2025-08-16 18:54:47,245 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754764329_int
+2025-08-16 18:54:47,245 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098052_sim
+2025-08-16 18:54:47,245 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754757920_int
+2025-08-16 18:54:47,245 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754758160_fra
+2025-08-16 18:54:47,246 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099445_sim
+2025-08-16 18:54:47,246 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755099124_sim
+2025-08-16 18:54:47,246 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765364_int
+2025-08-16 18:54:47,246 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766094_int
+2025-08-16 18:54:47,247 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098776_sim
+2025-08-16 18:54:47,247 - TeacherAgent.teacher_agent - INFO - Loaded template: 1755098566_sim
+2025-08-16 18:54:47,247 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754765121_int
+2025-08-16 18:54:47,247 - TeacherAgent.teacher_agent - INFO - Loaded template: 1754766309_int
+2025-08-16 18:54:47,248 - __main__ - INFO - Starting iterative review tests...
+2025-08-16 18:54:47,248 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:54:47,248 - __main__ - INFO - TEST CASE: Simple Algebra
+2025-08-16 18:54:47,248 - __main__ - INFO - Description: Basic algebra problem that should pass validation
+2025-08-16 18:54:47,248 - __main__ - INFO - Problem: Solve for x: 2x + 3 = 7
+2025-08-16 18:54:59,439 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:55:14,491 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:55:14,491 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:55:14,491 - __main__ - INFO - Iterations: 2
+2025-08-16 18:55:14,491 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:55:14,491 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:55:14,491 - __main__ - INFO - TEST CASE: Advanced Concept
+2025-08-16 18:55:14,491 - __main__ - INFO - Description: Contains calculus concept not suitable for grade 7
+2025-08-16 18:55:14,491 - __main__ - INFO - Problem: Find the derivative of f(x) = x²
+2025-08-16 18:55:32,596 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:55:53,438 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:56:10,491 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:56:10,492 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:56:10,492 - __main__ - INFO - Iterations: 3
+2025-08-16 18:56:10,492 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:56:10,492 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:56:10,492 - __main__ - INFO - TEST CASE: Multi-part Problem
+2025-08-16 18:56:10,492 - __main__ - INFO - Description: Multi-part geometry problem
+2025-08-16 18:56:10,492 - __main__ - INFO - Problem: (i) Find the perimeter of a rectangle with length 5cm and width 3cm.
+(ii) Find its area.
+2025-08-16 18:56:24,982 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:56:39,613 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:56:39,613 - __main__ - INFO - Final validation result: INVALID
+2025-08-16 18:56:39,613 - __main__ - INFO - Final Feedback: Problem rejected after review.
+2025-08-16 18:56:39,613 - __main__ - INFO - Iterations: 3
+2025-08-16 18:56:39,613 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:56:39,613 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:56:39,613 - __main__ - INFO - TEST CASE: Incomplete Problem
+2025-08-16 18:56:39,613 - __main__ - INFO - Description: Missing required information (radius)
+2025-08-16 18:56:39,613 - __main__ - INFO - Problem: Calculate the area of a circle
+2025-08-16 18:56:52,918 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:57:10,628 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:57:10,629 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:57:10,629 - __main__ - INFO - Iterations: 2
+2025-08-16 18:57:10,629 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:57:10,629 - __main__ - INFO - 
+================================================================================
+2025-08-16 18:57:10,629 - __main__ - INFO - TEST CASE: Word Problem
+2025-08-16 18:57:10,629 - __main__ - INFO - Description: A simple word problem involving distance, speed, and time.
+2025-08-16 18:57:10,629 - __main__ - INFO - Problem: A train travels at 60 km/h. How far will it travel in 3 hours?
+2025-08-16 18:57:28,940 - TeacherAgent.teacher_agent - INFO - Problem revised. Re-validating...
+2025-08-16 18:57:45,551 - __main__ - INFO - Final validation result: VALID
+2025-08-16 18:57:45,551 - __main__ - INFO - Final Feedback: Problem validated successfully!
+2025-08-16 18:57:45,551 - __main__ - INFO - Iterations: 2
+2025-08-16 18:57:45,551 - __main__ - INFO - ✅ Test passed as expected
+2025-08-16 18:57:45,551 - __main__ - INFO - All tests completed!

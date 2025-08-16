@@ -11,6 +11,7 @@ import os
 import random
 import sys
 import time
+import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -19,6 +20,47 @@ from create_custom_worksheet import save_worksheet, create_pdf
 
 # Import the problem importer
 from problem_importer import ProblemImporter
+ 
+# Agents for validation
+from agents.student_agent import StudentAgent
+from agents.teacher_agent import TeacherAgent, ProblemVariation
+
+# Default LLM config for agents
+llm_config = {
+    "llm_model": "mistral",
+    "llm_temperature": 0.7,
+}
+
+async def _validate_one(teacher, problem_text, solution_text, problem_number=None):
+    """Validate a single problem using the teacher agent."""
+    try:
+        if problem_number is not None:
+            print(f"\n🔍 Validating problem {problem_number}...")
+            print(f"   Problem: {problem_text}")
+            print(f"   Solution: {solution_text}")
+        
+        # Create a ProblemVariation object as expected by _validate_problem
+        problem_variation = ProblemVariation(
+            original_question=problem_text,
+            variation=problem_text,
+            solution=solution_text
+        )
+        
+        # Call the correct validation method
+        validation = await teacher._validate_problem(problem_variation)
+        
+        if problem_number is not None:
+            status = "✅ ACCEPTED" if validation.get('is_valid') else "❌ REJECTED"
+            print(f"   {status}: {validation.get('feedback', 'No feedback provided')}")
+            if not validation.get('is_valid') and 'validation_result' in validation:
+                print(f"   Validation details: {validation['validation_result']}")
+                
+        return validation
+    except Exception as e:
+        error_msg = f'Validation error: {e}'
+        if problem_number is not None:
+            print(f"❌ ERROR validating problem {problem_number}: {error_msg}")
+        return {'is_valid': False, 'feedback': error_msg}
 
 # Available difficulty levels
 DIFFICULTY_LEVELS = {
@@ -239,16 +281,18 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                         
                         === EXAMPLE 3 ===
                         Original: "If 5 is added to three times a number, the result is 20."
-                        Structure: 3x + 5 = 20
-                        Good Variation: "If 7 is added to two times a number, the result is 23."
-                        Structure: 2x + 7 = 23
-                        
                         === REQUIRED JSON FORMAT ===
                         {{
                           "original_structure": "The mathematical structure of the original problem (e.g., (x/3) - 1 = 1)",
                           "variation_structure": "The mathematical structure of your variation (should match the original)",
                           "variation": "Your new problem text here?",
-                          "explanation": "Explain how the mathematical structure was preserved"
+                          "solution_steps": [
+                            "Step 1: Write down the equation",
+                            "Step 2: Solve for x",
+                            "Step 3: Verify the solution"
+                          ],
+                          "final_answer": "The final numerical answer (e.g., x = 12)",
+                          "explanation": "Brief explanation of the solution approach"
                         }}
                         
                         Your response (ONLY the JSON object, no other text):
@@ -271,14 +315,21 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                         - Uses Indian currency (₹) and metric units
                         
                         === REQUIRED JSON FORMAT ===
-                        You MUST respond with a valid JSON object containing exactly these two fields:
+                        You MUST respond with a valid JSON object containing these fields:
                         - "variation": The new problem text (ending with a question mark)
-                        - "explanation": A brief explanation of the changes made
+                        - "solution_steps": ["Step 1", "Step 2", ...] (detailed solution steps)
+                        - "final_answer": "The final numerical/computational answer"
+                        - "explanation": A brief explanation of the solution approach
                         
                         Example:
                         {{
                           "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
-                          "explanation": "Changed the distance and time values while maintaining the speed calculation concept."
+                          "solution_steps": [
+                            "Step 1: Calculate the speed using the formula speed = distance/time",
+                            "Step 2: Plug in the values and solve for speed"
+                          ],
+                          "final_answer": "60 km/h",
+                          "explanation": "This problem involves calculating speed using the formula speed = distance/time."
                         }}
                         
                         RULES:
@@ -309,11 +360,18 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                     === REQUIRED JSON FORMAT ===
                     You MUST respond with a valid JSON object containing exactly these two fields:
                     - "variation": The new problem text (ending with a question mark)
-                    - "explanation": A brief explanation of the problem's concept
+                    - "solution_steps": ["Step 1", "Step 2", ...] (detailed solution steps)
+                    - "final_answer": "The final numerical/computational answer"
+                    - "explanation": A brief explanation of the solution approach
                     
                     Example:
                     {{
                       "variation": "If a train travels 300 km in 5 hours, what is its speed in km/h?",
+                      "solution_steps": [
+                        "Step 1: Calculate the speed using the formula speed = distance/time",
+                        "Step 2: Plug in the values and solve for speed"
+                      ],
+                      "final_answer": "60 km/h",
                       "explanation": "This problem involves calculating speed using the formula speed = distance/time."
                     }}
                     
@@ -351,7 +409,7 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                         if not isinstance(response_data, dict):
                             raise ValueError(f"Expected a JSON object, got {type(response_data).__name__}")
                             
-                        if 'variation' not in response_data or 'explanation' not in response_data:
+                        if 'variation' not in response_data or 'solution_steps' not in response_data or 'final_answer' not in response_data or 'explanation' not in response_data:
                             # If we still can't parse, try to extract just a question
                             questions = re.findall(r'([^.!?]+\?)', response)
                             if questions:
@@ -361,7 +419,12 @@ def generate_llm_problems(problem_type: str, count: int, difficulty: str = 'medi
                                 raise ValueError(f"Could not parse LLM response. Response: {response[:200]}...")
                         else:
                             problem_text = response_data['variation'].strip()
-                            solution_text = f"Explanation: {response_data['explanation']}"
+                            # Format the solution with steps and final answer
+                            solution_steps = '\n'.join(f"• {step}" for step in response_data.get('solution_steps', []))
+                            final_answer = response_data.get('final_answer', 'No final answer provided')
+                            explanation = response_data.get('explanation', 'No explanation provided')
+                            
+                            solution_text = f"{solution_steps}\n\nFinal Answer: {final_answer}\n\nExplanation: {explanation}"
                         
                         # Create the problem dictionary
                         problem = {
@@ -601,24 +664,27 @@ def import_problem():
 
 def create_custom_worksheet():
     """Interactive function to create a custom worksheet."""
-    print("\n=== Math Worksheet Generator (AI-Powered) ===")
-    print("1. Generate New Worksheet with AI")
-    print("2. Import Problem from Textbook")
-    print("3. Exit")
-    
-    choice = input("\nSelect an option (1-3): ").strip()
-    
-    if choice == '1':
-        # AI-generated worksheet
-        create_ai_worksheet()
-    elif choice == '2':
-        import_problem()
-    elif choice == '3':
-        print("\nExiting. Goodbye!")
-        return
-    else:
-        print("\nInvalid option. Please try again.")
-        create_custom_worksheet()
+    while True:
+        print("\n=== Math Worksheet Generator (AI-Powered) ===")
+        print("1. Generate New Worksheet with AI")
+        print("2. Import Problem from Textbook")
+        print("3. Generate Problems using Teacher-Student Agents")
+        print("4. Exit")
+        
+        choice = input("\nSelect an option (1-4): ").strip()
+        
+        if choice == '1':
+            # AI-generated worksheet
+            create_ai_worksheet()
+        elif choice == '2':
+            import_textbook_problem()
+        elif choice == '3':
+            asyncio.run(create_ai_worksheet_with_agents())
+        elif choice == '4':
+            print("\nThank you for using the Math Worksheet Generator!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 4.")
 
 def get_topic_settings(topic_id):
     """Get settings (number of problems and difficulty) for a specific topic."""
@@ -739,230 +805,174 @@ def create_ai_worksheet():
     topic_ids = '_'.join(t['id'] for t in worksheet_topics)
     save_worksheet(worksheet, f"multi_{topic_ids}")
     
-    print("\n✅ Worksheet generated successfully!")
-    print(f"Total problems: {len(all_problems)}")
-    for topic in worksheet_topics:
-        print(f"- {len(topic['problems'])} {topic['name']} problems")
+async def create_ai_worksheet_with_agents():
+    """Create a worksheet using AI-generated problems validated by Teacher-Student agents."""
+    print("\n=== Agent-Validated Worksheet Generation ===")
+    print("This will generate problems and validate them using Teacher-Student agents.\n")
     
-    # Ask if user wants to create another worksheet
-    if not get_yes_no("\nWould you like to create another worksheet"):
-        print("\nThank you for using the Math Worksheet Generator!")
-        sys.exit(0)
-
-        # Get difficulty selection
-        while True:
-            try:
-                choice = input("\nSelect difficulty (1-{}, default 2): ".format(len(difficulties)))
-                if not choice:  # Default to intermediate
-                    difficulty = 'intermediate'
-                    break
-                diff_idx = int(choice) - 1
-                if 0 <= diff_idx < len(difficulties):
-                    difficulty = difficulties[diff_idx]
-                    break
-                print("Please enter a number between 1 and {}".format(len(difficulties)))
-            except ValueError:
-                print("Please enter a valid number.")
-
-        print("\nGenerating your AI-powered worksheet...")
-
-        # Generate problems using LLM
-        problems = generate_llm_problems(
-            problem_type=topic_id,
-            count=num_problems,
-            difficulty=difficulty
-        )
-
-        if not problems:
-            print("Failed to generate problems. Please try again.")
-            return
-
-        # Create worksheet
-        worksheet = {
-            'metadata': {
-                'title': f"AI-Generated {TOPIC_GENERATORS[topic_id]['name']}",
-                'created_at': datetime.now().isoformat(),
-                'source': 'ai_generated',
-                'difficulty': difficulty,
-                'topic': topic_id
-            },
-            'problems': problems
-        }
-
-        # Save worksheet with proper directory structure
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        folder_path = os.path.join('worksheets', date_str)
-        os.makedirs(folder_path, exist_ok=True)
-
-        # Save the worksheet
-        save_worksheet(worksheet, topic_id)
-
-def generate_solution(problem: dict) -> str:
-    """Generate a solution for a given problem.
-    
-    Args:
-        problem: Dictionary containing problem details with keys:
-            - problem: The problem text
-            - type: The problem type (e.g., 'integer', 'fraction')
-            - difficulty: The difficulty level ('easy', 'medium', 'hard')
-            
-    Returns:
-        str: A step-by-step solution to the problem
-    """
+    # Instantiate agents once
     try:
-        # If problem already has an answer, use it
-        if problem.get('answer'):
-            return problem['answer']
-            
-        problem_text = problem.get('problem', '')
-        problem_type = problem.get('type', '').lower()
-        difficulty = problem.get('difficulty', 'medium')
-        
-        # Generate solution based on problem type
-        if 'integer' in problem_type:
-            return (
-                "Step 1: Analyze the problem to identify the required calculations\n"
-                "Step 2: Break down the problem into smaller, manageable parts\n"
-                "Step 3: Perform the necessary integer operations\n"
-                "Step 4: Verify the solution by checking the calculations\n"
-                "Note: The exact solution steps would depend on the specific problem details."
-            )
-        elif 'fraction' in problem_type:
-            return (
-                "Step 1: Identify the fractions involved in the problem\n"
-                "Step 2: Find a common denominator if needed\n"
-                "Step 3: Perform the required operations (addition, subtraction, etc.)\n"
-                "Step 4: Simplify the resulting fraction to its lowest terms\n"
-                "Note: The exact solution steps would depend on the specific problem details."
-            )
-        elif 'decimal' in problem_type:
-            return (
-                "Step 1: Align the decimal points for all numbers\n"
-                "Step 2: Perform the required operations\n"
-                "Step 3: Ensure proper placement of the decimal point in the final answer\n"
-                "Note: The exact solution steps would depend on the specific problem details."
-            )
-        elif 'percentage' in problem_type:
-            return (
-                "Step 1: Identify the base amount and the percentage\n"
-                "Step 2: Convert percentage to decimal form (divide by 100)\n"
-                "Step 3: Multiply the base amount by the decimal percentage\n"
-                "Note: The exact solution steps would depend on the specific problem details."
-            )
+        student = StudentAgent(grade_level=7, config=llm_config)
+        teacher = TeacherAgent(student_agent=student, config=llm_config)
+    except Exception as e:
+        print(f"❌ Failed to initialize agents: {e}")
+        return
+    
+    # Topic selection flow (reuse from create_ai_worksheet)
+    print("=== Available Topics ===")
+    topics = list(TOPIC_GENERATORS.keys())
+    selected_topics = []
+    
+    while True:
+        print("\nCurrent selection:")
+        if not selected_topics:
+            print("  None")
         else:
-            return (
-                "Step 1: Read the problem carefully and identify what is being asked\n"
-                "Step 2: List out the given information\n"
-                "Step 3: Determine the appropriate mathematical operations needed\n"
-                "Step 4: Perform the calculations step by step\n"
-                "Step 5: Verify your answer by checking if it makes sense in the given context"
-            )
-    except Exception as e:
-        print(f"Warning: Could not generate solution: {e}")
-        return "[Solution not available]"
-def save_worksheet(worksheet_data: dict, topic_id: str) -> tuple:
-    """Save the worksheet and its solutions to files.
-    
-    Args:
-        worksheet_data: Dictionary containing worksheet data
-        topic_id: Identifier for the worksheet topic
+            for i, topic in enumerate(selected_topics, 1):
+                print(f"  {i}. {topic['name']} - {topic['num_problems']} problems ({topic['difficulty']})")
         
-    Returns:
-        tuple: (saved_worksheet_data, output_folder_path)
-    """
-    try:
-        # Create dated directory if it doesn't exist
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        folder_path = os.path.join('worksheets', date_str)
-        os.makedirs(folder_path, exist_ok=True)
+        print("\nAvailable topics to add:")
+        for i, topic in enumerate(topics, 1):
+            print(f"{i}. {TOPIC_GENERATORS[topic]['name']} - {TOPIC_GENERATORS[topic]['description']}")
+        print("0. Done adding topics")
         
-        # Ensure problems is a list
-        problems = worksheet_data.get('problems', [])
-        if not isinstance(problems, list):
-            problems = [problems]
-        
-        # Generate solutions for each problem
-        for problem in problems:
-            if 'solution' not in problem:
-                problem['solution'] = generate_solution(problem)
-        
-        # Update the worksheet data with solutions
-        worksheet_data['problems'] = problems
-        
-        # Save the worksheet as JSON
-        worksheet_file = f"worksheet_{topic_id}_{timestamp}.json"
-        worksheet_path = os.path.join(folder_path, worksheet_file)
-        
-        with open(worksheet_path, 'w') as f:
-            json.dump(worksheet_data, f, indent=2)
-        
-        # Generate a solutions file
-        solutions = {
-            'worksheet_id': worksheet_file,
-            'topic': worksheet_data.get('metadata', {}).get('title', 'Custom Worksheet'),
-            'date': date_str,
-            'difficulty': worksheet_data.get('metadata', {}).get('difficulty', 'medium'),
-            'solutions': [
-                {
-                    'problem': p.get('question', 'No question provided'),
-                    'solution': p.get('solution', 'No solution available'),
-                    'explanation': p.get('explanation', '')
-                } for p in problems
-            ]
-        }
-        
-        solutions_file = f"solutions_{topic_id}_{timestamp}.json"
-        solutions_path = os.path.join(folder_path, solutions_file)
-        
-        with open(solutions_path, 'w') as f:
-            json.dump(solutions, f, indent=2)
-        
-        print(f"\n✅ Worksheet saved to: {worksheet_path}")
-        print(f"✅ Solutions saved to: {solutions_path}")
-        
-        # Generate PDF versions if needed
         try:
-            from generate_pdf import create_pdf
+            choice = input("\nSelect a topic to add (1-{}) or 0 when done: ".format(len(topics)))
+            if choice == '0':
+                if not selected_topics:
+                    print("Please select at least one topic.")
+                    continue
+                break
+            topic_idx = int(choice) - 1
+            if 0 <= topic_idx < len(topics):
+                topic_id = topics[topic_idx]
+                topic_settings = get_topic_settings(topic_id)
+                selected_topics.append(topic_settings)
+                topics.pop(topic_idx)
+            else:
+                print("Please enter a number between 1 and {}".format(len(topics)))
+        except ValueError:
+            print("Please enter a valid number.")
+    
+    all_problems = []
+    worksheet_topics = []
+    rejected_log = []
+    
+    for topic_settings in selected_topics:
+        desired = topic_settings['num_problems']
+        print(f"\n📝 Generating {desired} {topic_settings['difficulty']} {topic_settings['name'].lower()}...")
+        print(f"   Will make up to {desired * 3} attempts to get {desired} valid problems")
+        
+        attempts = 0
+        max_attempts = desired * 3
+        validated: list = []
+        
+        # Track progress
+        def get_progress():
+            return f"[{'✅' * len(validated)}{'⬜' * (desired - len(validated))}] {len(validated)}/{desired} problems"
+        
+        while len(validated) < desired and attempts < max_attempts:
+            # Calculate batch size (smaller as we get closer to desired count)
+            remaining = desired - len(validated)
+            batch_size = min(3, remaining)
+            attempts += 1
             
-            # Prepare worksheet data for PDF generation
-            pdf_worksheet_data = {
-                'topic': worksheet_data.get('metadata', {}).get('title', 'Math Worksheet'),
-                'difficulty': worksheet_data.get('metadata', {}).get('difficulty', 'medium'),
-                'date': datetime.now().strftime("%Y-%m-%d"),
-                'problems': [
-                    {
-                        'problem': p.get('question', p.get('problem', 'No problem text')),
-                        'answer': p.get('solution', p.get('answer', 'No solution available')),
-                        'explanation': p.get('explanation', '')
-                    }
-                    for p in worksheet_data.get('problems', [])
-                ]
+            print(f"\n🔄 Attempt {attempts}/{max_attempts} {get_progress()}")
+            print(f"   Generating {batch_size} problem{'s' if batch_size > 1 else ''}...")
+            
+            try:
+                # Generate a batch of problems
+                problems = generate_llm_problems(
+                    problem_type=topic_settings['id'],
+                    count=batch_size,
+                    difficulty=topic_settings['difficulty']
+                )
+                
+                if not problems:
+                    print("   ❌ No problems generated in this attempt")
+                    continue
+                    
+                print(f"   Validating {len(problems)} generated problem{'s' if len(problems) > 1 else ''}...")
+                
+                # Process each problem in the batch
+                for i, p in enumerate(problems, 1):
+                    try:
+                        problem_text = p.get('problem') or p.get('question', '')
+                        solution_text = p.get('solution', '')
+                        
+                        res = await _validate_one(teacher, problem_text, solution_text, problem_number=len(validated) + 1)
+                        
+                        if res.get('is_valid'):
+                            validated.append(p)
+                            print(f"   🎉 Added to worksheet! {get_progress()}")
+                            if len(validated) >= desired:
+                                break
+                        else:
+                            reason = res.get('feedback', 'No specific reason provided')
+                            print(f"   ❌ Rejected: {reason}")
+                            if 'validation_result' in res:
+                                print(f"      Details: {res['validation_result']}")
+                                
+                            rejected_log.append({
+                                'problem': problem_text,
+                                'reason': reason,
+                                'validation_result': res.get('validation_result')
+                            })
+                            
+                    except Exception as e:
+                        error_msg = f'Processing error: {e}'
+                        print(f"   ❌ {error_msg}")
+                        rejected_log.append({
+                            'problem': p.get('problem') or p.get('question', ''), 
+                            'reason': error_msg
+                        })
+                        continue
+                        
+            except Exception as e:
+                print(f"   ❌ Error generating problems: {e}")
+                continue
+        if len(validated) < desired:
+            print(f"⚠️  Only {len(validated)} of {desired} problems passed validation for {topic_settings['name']} after {attempts} attempts.")
+        if validated:
+            worksheet_topics.append({
+                'id': topic_settings['id'],
+                'name': topic_settings['name'],
+                'difficulty': topic_settings['difficulty'],
+                'problems': validated[:desired]
+            })
+            all_problems.extend(validated[:desired])
+    
+    if not all_problems:
+        print("Failed to produce any validated problems. Please try again.")
+        return
+    
+    # Build PDF-friendly worksheet (map 'solution'->'answer')
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    pdf_worksheet = {
+        'topic': 'Mixed Topics' if len(worksheet_topics) > 1 else (worksheet_topics[0]['name'] if worksheet_topics else 'Math'),
+        'difficulty': 'mixed' if len(worksheet_topics) > 1 else (worksheet_topics[0]['difficulty'] if worksheet_topics else 'intermediate'),
+        'date': date_str,
+        'problems': [
+            {
+                'problem': p.get('problem') or p.get('question', ''),
+                'answer': p.get('answer', p.get('solution', ''))
             }
-            
-            # Create worksheet PDF
-            pdf_worksheet = os.path.join(folder_path, f"worksheet_{topic_id}_{timestamp}.pdf")
-            create_pdf(pdf_worksheet_data, include_answers=False, output_path=pdf_worksheet)
-            
-            # Create solutions PDF
-            pdf_solutions = os.path.join(folder_path, f"solutions_{topic_id}_{timestamp}.pdf")
-            create_pdf(pdf_worksheet_data, include_answers=True, output_path=pdf_solutions)
-            
-            print(f"✅ Worksheet PDF: {pdf_worksheet}")
-            print(f"✅ Solutions PDF: {pdf_solutions}")
-            
-        except ImportError as e:
-            print(f"PDF generation module not available: {e}")
-            print("Only JSON files were created. Please ensure ReportLab is installed.")
-        except Exception as e:
-            print(f"Warning: Could not generate PDFs: {e}")
-            print("Only JSON files were created. Please check the error above.")
-        
-        return worksheet_data, folder_path
-        
-    except Exception as e:
-        print(f"\n❌ Error saving worksheet: {e}")
-        raise  # Re-raise to allow calling function to handle the error
+            for p in all_problems
+        ]
+    }
+    
+    # Save JSON using standard saver (returns JSON file path); derive folder for PDFs
+    topic_ids = '_'.join(t['id'] for t in worksheet_topics)
+    
+    # Save just the problems list to JSON
+    saved_json_path = save_worksheet(pdf_worksheet['problems'], f"agents_multi_{topic_ids}")
+    folder_path = os.path.dirname(saved_json_path)
+    
+    # Generate PDFs in same folder
+    questions_pdf = os.path.join(folder_path, 'worksheet_questions.pdf')
+    answers_pdf = os.path.join(folder_path, 'worksheet_answers.pdf')
+    create_pdf(pdf_worksheet, include_answers=False, output_path=questions_pdf)
+    create_pdf(pdf_worksheet, include_answers=True, output_path=answers_pdf)
 
 def create_manual_worksheet():
     """This function is deprecated. Manual worksheet creation has been replaced by AI-powered generation."""
