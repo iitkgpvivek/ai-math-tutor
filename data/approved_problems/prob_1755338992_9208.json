@@ -1,0 +1,16 @@
+{
+  "problem_id": "prob_1755338992_9208",
+  "original_question": "A rectangle has a length of 8 units and width of 3 units. What is its area?",
+  "variation": "A rectangle has a length of 15 centimeters and width of 6 meters. What is its area?",
+  "solution": "To find the area of a rectangle, multiply its length by its width.",
+  "status": "approved",
+  "reviews": [
+    {
+      "feedback": "Problem is valid",
+      "is_valid": true,
+      "validation_result": "valid",
+      "iteration": 0,
+      "timestamp": 1755338992.9453802
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "problem_id": "prob_1755338992_5756",
+  "original_question": "If John has 5 apples and gives 2 to Mary, how many apples does he have left?",
+  "variation": "If John has 3 apples and gives 3 to Sarah, how many apples does he have left?",
+  "solution": "This is a simple subtraction problem. The answer depends on the specific numbers in the problem.",
+  "status": "approved",
+  "reviews": [
+    {
+      "feedback": "Problem is valid",
+      "is_valid": true,
+      "validation_result": "valid",
+      "iteration": 0,
+      "timestamp": 1755338992.945318
+    }
+  ]
+}

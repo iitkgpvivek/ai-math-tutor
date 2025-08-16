@@ -1,0 +1,16 @@
+{
+  "problem_id": "prob_1755338992_9911",
+  "original_question": "What is 3/4 of 20?",
+  "variation": "What is 4/5 of 30?",
+  "solution": "To find a fraction of a number, multiply the fraction by the number.",
+  "status": "approved",
+  "reviews": [
+    {
+      "feedback": "Problem is valid",
+      "is_valid": true,
+      "validation_result": "valid",
+      "iteration": 0,
+      "timestamp": 1755338992.945426
+    }
+  ]
+}
